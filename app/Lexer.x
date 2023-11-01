@@ -14,100 +14,107 @@ $alpha = [a-zA-Z]
 tokens :-
     $white+;
 
-    "+" { \s -> TAdd }
-    "-" { \s -> TSub }
-    "*" { \s -> TMul }
-    "/" { \s -> TDiv }
-    "%" { \s -> TMod }
+    "+" { \s -> Add }
+    "-" { \s -> Sub }
+    "*" { \s -> Mul }
+    "/" { \s -> Div }
+    "%" { \s -> Mod }
 
-    "and" { \s -> TAnd }
-    "or" { \s -> TOr }
-    "not" { \s -> TNot }
-    "==" { \s -> TEq }
-    "!=" { \s -> TNeq }
-    ">" { \s -> TGt }
-    "<" { \s -> TLt }
-    ">=" { \s -> TGte }
-    "<=" { \s -> TLte }
+    "and" { \s -> And }
+    "or" { \s -> Or }
+    "not" { \s -> Not }
+    "==" { \s -> Eq }
+    "!=" { \s -> Neq }
+    ">" { \s -> Gt }
+    "<" { \s -> Lt }
+    ">=" { \s -> Gte }
+    "<=" { \s -> Lte }
 
-    "(" { \s -> TLParen }
-    ")" { \s -> TRParen }
-    "{" { \s -> TLBrace }
-    "}" { \s -> TRBrace }
+    "(" { \s -> LParen }
+    ")" { \s -> RParen }
+    "{" { \s -> LBrace }
+    "}" { \s -> RBrace }
 
-    "=" { \s -> TAssign }
+    "=" { \s -> Assign }
 
-    @int { \s -> TInt (read s) }
-    @id { \s -> TId s }
-    @dice { \s -> TDice (read (takeWhile (/='d') s)) (read (tail (dropWhile (/='d') s))) }
+    ";" { \s -> Semicolon }
 
-    "let" { \s -> TLet }
-    "if" { \s -> TIf }
-    "else" { \s -> TElse }
-    "while" { \s -> TWhile }
-    "player" { \s -> TPlayer }
-    "enemy" { \s -> TEnemy }
-    "enemies" { \s -> TEnemies }
-    "action" { \s -> TAction }
-    "targets" { \s -> TTargets }
-    "trigger" { \s -> TTrigger }
-    "on" { \s -> TOn }
-    "statblock" { \s -> TStatblock }
-    "stats" { \s -> TStats }
-    "item" { \s -> TItem }
-    "items" { \s -> TItems }
-    "doors" { \s -> TDoors }
-    "to" { \s -> TTo }
-    "requires" { \s -> TRequires }
-    "room" { \s -> TRoom }
+    "let" { \s -> Let }
+    "if" { \s -> If }
+    "else" { \s -> Else }
+    "while" { \s -> While }
+    "player" { \s -> Player }
+    "enemy" { \s -> Enemy }
+    "enemies" { \s -> Enemies }
+    "action" { \s -> Action }
+    "targets" { \s -> Targets }
+    "trigger" { \s -> Trigger }
+    "on" { \s -> On }
+    "statblock" { \s -> Statblock }
+    "stats" { \s -> Stats }
+    "item" { \s -> Item }
+    "items" { \s -> Items }
+    "doors" { \s -> Doors }
+    "to" { \s -> To }
+    "requires" { \s -> Requires }
+    "room" { \s -> Room }
+
+    @int { \s -> Int (read s) }
+    @id { \s -> Id s }
+    @dice { \s -> Dice s }
 
 {
+
 data Token
-    = TAdd
-    | TSub
-    | TMul
-    | TDiv
-    | TMod
+    = Add
+    | Sub
+    | Mul
+    | Div
+    | Mod
 
-    | TAnd
-    | TOr
-    | TNot
-    | TEq
-    | TNeq
-    | TGt
-    | TLt
-    | TGte
-    | TLte
+    | And
+    | Or
+    | Not
+    | Eq
+    | Neq
+    | Gt
+    | Lt
+    | Gte
+    | Lte
 
-    | TLParen
-    | TRParen
+    | LParen
+    | RParen
+    | LBrace
+    | RBrace
 
-    | TAssign
+    | Assign
 
-    | TInt Int
-    | TDice Int Int
+    | Semicolon
+
+    | Int Int
+    | Dice String
     
-    | TId String
+    | Id String
 
-    | TLet
-    | TIf
-    | TElse
-    | TWhile
-    | TPlayer
-    | TEnemy
-    | TEnemies
-    | TAction
-    | TTargets
-    | TTrigger
-    | TOn
-    | TStatblock
-    | TStats
-    | TItem
-    | TItems
-    | TDoors
-    | TTo
-    | TRequires
-    | TRoom
+    | Let
+    | If
+    | Else
+    | While
+    | Player
+    | Enemy
+    | Enemies
+    | Action
+    | Targets
+    | Trigger
+    | On
+    | Statblock
+    | Stats
+    | Item
+    | Items
+    | Doors
+    | To
+    | Requires
+    | Room
 
     deriving (Eq, Show)
 

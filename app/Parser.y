@@ -1,6 +1,6 @@
 {
 module Parser where
-import qualified Lexer
+import Lexer
 }
 
 %name parse
@@ -8,57 +8,73 @@ import qualified Lexer
 %error { parseError }
 
 %token
-    '+' { TAdd }
-    '-' { TSub }
-    '*' { TMul }
-    '/' { TDiv }
-    '%' { TMod }
+    '+' { Add }
+    '-' { Sub }
+    '*' { Mul }
+    '/' { Div }
+    '%' { Mod }
 
-    and { TAnd }
-    or { TOr }
-    not { TNot }
-    eq { TEq }
-    neq { TNeq }
-    '>' { TGt }
-    '<' { TLt }
-    gte { TGte }
-    lte { TLte }
-    '(' { TLParen }
-    ')' { TRParen }
-    '{' { TLBrace }
-    '}' { TRBrace }
+    and { And }
+    or { Or }
+    not { Not }
+    eq { Eq }
+    neq { Neq }
+    '>' { Gt }
+    '<' { Lt }
+    gte { Gte }
+    lte { Lte }
+    '(' { LParen }
+    ')' { RParen }
+    '{' { LBrace }
+    '}' { RBrace }
 
-    '=' { TAssign }
+    '=' { Assign }
 
-    int { TInt }
-    id { TId }
-    dice { TDice }
+    ';' { Semicolon }
 
-    let { TLet }
-    if { TIf }
-    else { TElse }
-    while { TWhile }
-    player { TPlayer }
-    enemy { TEnemy }
-    enemies { TEnemies }
-    action { TAction }
-    targets { TTargets }
-    trigger { TTrigger }
-    on { TOn }
-    statblock { TStatblock }
-    stats { TStats }
-    item { TItem }
-    doors { TDoors }
-    to { TTo }
-    requires { TRequires }
-    room { TRoom }
+    int { Int $$ }
+    id { Id $$ }
+    dice { Dice $$ }
+
+    let { Let }
+    if { If }
+    else { Else }
+    while { While }
+    player { Player }
+    enemy { Enemy }
+    enemies { Enemies }
+    action { Action }
+    targets { Targets }
+    trigger { Trigger }
+    on { On }
+    statblock { Statblock }
+    stats { Stats }
+    item { Item }
+    doors { Doors }
+    to { To }
+    requires { Requires }
+    room { Room }
 %%
 
-Statblock: statblock '{' StatList '}' { 1 }
+Statblock: statblock '{' StatList '}' { StatBlockNode { stats=$3 } }
 
-StatList: 
+StatList
+    : {- empty -} { [] }
+    | StatList Stat { $2 : $1 }
+
+Stat: id '=' int ';' { StatNode { name=$1, val=$3 } }
 
 {
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
+
+data StatBlockNode = StatBlockNode {
+    stats :: [StatNode]
+} deriving Show
+
+data StatNode = StatNode {
+    name :: String,
+    val :: Int
+} deriving Show
+
 }
