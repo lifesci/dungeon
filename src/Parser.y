@@ -1,6 +1,7 @@
 {
 module Parser where
 import Lexer
+import Lib(rev)
 }
 
 %name parse
@@ -58,40 +59,40 @@ import Lexer
     room { TRoom }
 %%
 
-Statblock: statblock '{' StatList '}' { StatBlockNode { stats=$3 } }
+Statblock: statblock '{' StatList '}' { StatBlockNode { stats=(rev $3) } }
 
 StatList
-    : {- empty -} { [] }
+    : {- empty -} { []}
     | StatList Stat { $2 : $1 }
 
 Stat: id '=' int ';' { StatNode { statName=$1, statVal=$3 } }
 
 Player
-    : player id '{' stats '{' StatList '}' '}' { EntityNode { entityType=Player, entityName=$2, entityStats=$6 } }
+    : player id '{' stats '{' StatList '}' '}' { EntityNode { entityType=Player, entityName=$2, entityStats=(rev $6) } }
 
 Enemy
-    : enemy id '{' stats '{' StatList '}' '}' { EntityNode { entityType=Enemy, entityName=$2, entityStats=$6 } }
+    : enemy id '{' stats '{' StatList '}' '}' { EntityNode { entityType=Enemy, entityName=$2, entityStats=(rev $6) } }
 
 Stmt
     : let id '=' Expr ';' { DeclareNode Declare { declareVar=$2, declareVal=$4 } }
     | id '=' Expr ';' { AssignNode Assign { assignVar=$1, assignVal=$3 } }
     | Prop '=' Expr ';' { AssignPropNode AssignProp { assignPropProp=$1, assignPropVal=$3 } }
-    | id '(' ExprList ')' ';' { FuncNode Func { funcName=$1, funcArgs=$3 } }
-    | while '(' Expr ')' '{' StmtList '}' { WhileNode While { whileCond=$3, whileStmts=$6 } }
+    | id '(' ExprList ')' ';' { FuncNode Func { funcName=$1, funcArgs=(rev $3) } }
+    | while '(' Expr ')' '{' StmtList '}' { WhileNode While { whileCond=$3, whileStmts=(rev $6) } }
     | If { $1 }
 
 If
-    : if '(' Expr ')' '{' StmtList '}' ElseIfList Else { IfNode If { ifCond=$3, ifStmts=$6, elseIfs=$8, elseStmts=$9 } }
+    : if '(' Expr ')' '{' StmtList '}' ElseIfList Else { IfNode If { ifCond=$3, ifStmts=(rev $6), elseIfs=(rev $8), elseStmts=(rev $9) } }
 
 ElseIfList
     : {- empty -} { [] }
     | ElseIfList ElseIf { $2 : $1 }
 
 ElseIf
-    : else if '(' Expr ')' '{' StmtList '}' { ElseIf { elseIfCond=$4, elseIfStmts=$7 } }
+    : else if '(' Expr ')' '{' StmtList '}' { ElseIf { elseIfCond=$4, elseIfStmts=(rev $7) } }
 
 Else
-    : else '{' StmtList '}' { $3 }
+    : else '{' StmtList '}' { rev $3 }
 
 StmtList
     : {- empty -} { [] }
