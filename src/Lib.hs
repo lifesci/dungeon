@@ -1,6 +1,9 @@
-module Lib
-    ( someFunc
-    ) where
+module Lib (
+    rev
+) where
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+rev :: [a] -> [a]
+rev xs = foldl rev' [] xs
+    where
+        rev' :: [a] -> a -> [a]
+        rev' acc x = x:acc

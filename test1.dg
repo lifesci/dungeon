@@ -1,0 +1,55 @@
+game test;
+
+statblock {
+    hp = 1;
+    mp = 2;
+}
+
+player me {
+    stats {
+        hp = 1;
+    }
+    action test_action targets (a or b) {}
+    trigger test_trigger on (c or not d) {}
+}
+
+enemy test_enemy {
+    stats {
+        mp = 1;
+    }
+    action test_action targets (a or b) {}
+    trigger test_trigger on (c or not d) {}
+}
+
+item test_item<weapon> {
+    action attack targets (entity) {
+        let dmg = 5;
+        target.hp = target.hp - dmg;
+        take();
+    }
+}
+
+room test_room1 {
+    enemies {}
+    items {
+        t1 = test_item;
+    }
+    doors {
+        door1 to test_room2;
+    }
+}
+
+room test_room2 {
+    enemies {
+        e1 = test_enemy;
+        e2 = test_enemy2;
+    }
+    items {
+        test1 = test_item;
+        test2 = test_item;
+    }
+    doors {
+        door2 to test_room1 requires(key);
+        red_door to test_room2 requires(red_key);
+    }
+}

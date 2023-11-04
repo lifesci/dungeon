@@ -14,107 +14,111 @@ $alpha = [a-zA-Z]
 tokens :-
     $white+;
 
-    "+" { \s -> Add }
-    "-" { \s -> Sub }
-    "*" { \s -> Mul }
-    "/" { \s -> Div }
-    "%" { \s -> Mod }
+    "+" { \s -> TAdd }
+    "-" { \s -> TSub }
+    "*" { \s -> TMul }
+    "/" { \s -> TDiv }
+    "%" { \s -> TMod }
 
-    "and" { \s -> And }
-    "or" { \s -> Or }
-    "not" { \s -> Not }
-    "==" { \s -> Eq }
-    "!=" { \s -> Neq }
-    ">" { \s -> Gt }
-    "<" { \s -> Lt }
-    ">=" { \s -> Gte }
-    "<=" { \s -> Lte }
+    "and" { \s -> TAnd }
+    "or" { \s -> TOr }
+    "not" { \s -> TNot }
+    "==" { \s -> TEq }
+    "!=" { \s -> TNeq }
+    ">" { \s -> TGt }
+    "<" { \s -> TLt }
+    ">=" { \s -> TGte }
+    "<=" { \s -> TLte }
 
-    "(" { \s -> LParen }
-    ")" { \s -> RParen }
-    "{" { \s -> LBrace }
-    "}" { \s -> RBrace }
+    "(" { \s -> TLParen }
+    ")" { \s -> TRParen }
+    "{" { \s -> TLBrace }
+    "}" { \s -> TRBrace }
 
-    "=" { \s -> Assign }
+    "=" { \s -> TAssign }
 
-    ";" { \s -> Semicolon }
+    ";" { \s -> TSemicolon }
+    "." { \s -> TDot }
+    "," { \s -> TComma }
 
-    "let" { \s -> Let }
-    "if" { \s -> If }
-    "else" { \s -> Else }
-    "while" { \s -> While }
-    "player" { \s -> Player }
-    "enemy" { \s -> Enemy }
-    "enemies" { \s -> Enemies }
-    "action" { \s -> Action }
-    "targets" { \s -> Targets }
-    "trigger" { \s -> Trigger }
-    "on" { \s -> On }
-    "statblock" { \s -> Statblock }
-    "stats" { \s -> Stats }
-    "item" { \s -> Item }
-    "items" { \s -> Items }
-    "doors" { \s -> Doors }
-    "to" { \s -> To }
-    "requires" { \s -> Requires }
-    "room" { \s -> Room }
+    "let" { \s -> TLet }
+    "if" { \s -> TIf }
+    "else" { \s -> TElse }
+    "while" { \s -> TWhile }
+    "player" { \s -> TPlayer }
+    "enemy" { \s -> TEnemy }
+    "enemies" { \s -> TEnemies }
+    "action" { \s -> TAction }
+    "targets" { \s -> TTargets }
+    "trigger" { \s -> TTrigger }
+    "on" { \s -> TOn }
+    "statblock" { \s -> TStatblock }
+    "stats" { \s -> TStats }
+    "item" { \s -> TItem }
+    "items" { \s -> TItems }
+    "doors" { \s -> TDoors }
+    "to" { \s -> TTo }
+    "requires" { \s -> TRequires }
+    "room" { \s -> TRoom }
 
-    @int { \s -> Int (read s) }
-    @id { \s -> Id s }
-    @dice { \s -> Dice s }
+    @int { \s -> TInt (read s) }
+    @id { \s -> TId s }
+    @dice { \s -> TRawDice s }
 
 {
 
 data Token
-    = Add
-    | Sub
-    | Mul
-    | Div
-    | Mod
+    = TAdd
+    | TSub
+    | TMul
+    | TDiv
+    | TMod
 
-    | And
-    | Or
-    | Not
-    | Eq
-    | Neq
-    | Gt
-    | Lt
-    | Gte
-    | Lte
+    | TAnd
+    | TOr
+    | TNot
+    | TEq
+    | TNeq
+    | TGt
+    | TLt
+    | TGte
+    | TLte
 
-    | LParen
-    | RParen
-    | LBrace
-    | RBrace
+    | TLParen
+    | TRParen
+    | TLBrace
+    | TRBrace
 
-    | Assign
+    | TAssign
 
-    | Semicolon
+    | TSemicolon
+    | TDot
+    | TComma
 
-    | Int Int
-    | Dice String
-    
-    | Id String
+    | TInt Int
+    | TRawDice String
 
-    | Let
-    | If
-    | Else
-    | While
-    | Player
-    | Enemy
-    | Enemies
-    | Action
-    | Targets
-    | Trigger
-    | On
-    | Statblock
-    | Stats
-    | Item
-    | Items
-    | Doors
-    | To
-    | Requires
-    | Room
+    | TId String
+
+    | TLet
+    | TIf
+    | TElse
+    | TWhile
+    | TPlayer
+    | TEnemy
+    | TEnemies
+    | TAction
+    | TTargets
+    | TTrigger
+    | TOn
+    | TStatblock
+    | TStats
+    | TItem
+    | TItems
+    | TDoors
+    | TTo
+    | TRequires
+    | TRoom
 
     deriving (Eq, Show)
 
