@@ -53,6 +53,7 @@ import Lib(rev)
     statblock { TStatblock }
     stats { TStats }
     item { TItem }
+    items { TItems }
     doors { TDoors }
     to { TTo }
     requires { TRequires }
@@ -68,10 +69,69 @@ StatList
 Stat: id '=' int ';' { StatNode { statName=$1, statVal=$3 } }
 
 Player
-    : player id '{' stats '{' StatList '}' '}' { EntityNode { entityType=Player, entityName=$2, entityStats=(rev $6) } }
+    : player id '{' stats '{' StatList '}' ActionList TriggerList '}' { EntityNode { entityType=Player, entityName=$2, entityStats=(rev $6), entityActions=(rev $8), entityTriggers=(rev $9) } }
+
+EnemyList
+    : {- empty -} { [] }
+    | EnemyList Enemy { $2 : $1 }
 
 Enemy
-    : enemy id '{' stats '{' StatList '}' '}' { EntityNode { entityType=Enemy, entityName=$2, entityStats=(rev $6) } }
+    : enemy id '{' stats '{' StatList '}' ActionList TriggerList '}' { EntityNode { entityType=Enemy, entityName=$2, entityStats=(rev $6), entityActions=(rev $8), entityTriggers=(rev $9) } }
+
+Item
+    : item id '<' IdList '>' '{' ActionList '}' { ItemNode { itemName=$2, itemAttribs=(rev $4), itemActions=(rev $7) } }
+
+Room: room id '{' RoomEnemies RoomItems Doors '}' { RoomNode { roomName=$2, roomEnemies=$4, roomItems=$5, doors=$6 } }
+
+RoomEnemies: enemies '{' RoomEnemyList '}' { rev $3 }
+
+RoomEnemyList
+    : {- empty -} { [] }
+    | RoomEnemyList RoomEnemy { $2 : $1 }
+
+RoomEnemy: id '=' id ';' { RoomEnemy { roomEnemyName=$1, roomEnemyType=$3 } }
+
+RoomItems: items '{' RoomItemList '}' { rev $3 }
+
+RoomItemList
+    : {- empty -} { [] }
+    | RoomItemList RoomItem { $2 : $1 }
+
+RoomItem: id '=' id { RoomItem { roomItemName=$1, roomItemType=$3 } }
+
+Doors: doors '{' DoorList '}' { rev $3 }
+
+DoorList
+    : {- empty -} { [] }
+    | DoorList Door { $2 : $1 }
+
+Door: id to id DoorReq ';' { Door { doorName=$1, doorTo=$3, doorReq=$4 } }
+
+DoorReq
+    : {- empty -} { IntNode 1 }
+    | requires '(' Expr ')' { $3 }
+
+IdList
+    : {- empty -} { [] }
+    | NonEmptyIdList { $1 }
+
+NonEmptyIdList
+    : id { [$1] }
+    | NonEmptyIdList ',' id { $3 : $1 }
+
+ActionList
+    : {- empty -} { [] }
+    | ActionList Action { $2 : $1 }
+
+TriggerList
+    : {- empty -} { [] }
+    | TriggerList Trigger { $2 : $1 }
+
+Action
+    : action id targets '(' Expr ')' '{' StmtList '}' { ActionNode { actionName=$2, actionTargets=$5, actionStmts=$8 } }
+
+Trigger
+    : trigger id on '(' Expr ')' '{' StmtList '}' { TriggerNode { triggerName=$2, triggerOn=$5, triggerStmts=$8 } }
 
 Stmt
     : let id '=' Expr ';' { DeclareNode Declare { declareVar=$2, declareVal=$4 } }
@@ -100,28 +160,32 @@ StmtList
 
 ExprList
     : {- empty -} { [] }
-    | ExprList ',' Expr { $3 : $1 }
+    | NonEmptyExprList { $1 }
+
+NonEmptyExprList
+    : Expr { [$1] }
+    | NonEmptyExprList ',' Expr { $3 : $1 }
 
 Expr
-    : Expr '+' Factor { AddNode $1 $3 }
-    | Expr '-' Factor { SubNode $1 $3 }
-    | Expr or Factor { OrNode $1 $3 }
-    | Expr '>' Factor { GtNode $1 $3 }
-    | Expr '<' Factor { LtNode $1 $3 }
-    | Expr gte Factor { GteNode $1 $3 }
-    | Expr lte Factor { LteNode $1 $3 }
+    : Expr '+' Factor { BinOpNode Add $1 $3 }
+    | Expr '-' Factor { BinOpNode Sub $1 $3 }
+    | Expr or Factor { BinOpNode Or $1 $3 }
+    | Expr '>' Factor { BinOpNode Gt $1 $3 }
+    | Expr '<' Factor { BinOpNode Lt $1 $3 }
+    | Expr gte Factor { BinOpNode Gte $1 $3 }
+    | Expr lte Factor { BinOpNode Lte $1 $3 }
     | Factor { $1 }
 
 Factor
-    : Factor '*' Unary { MulNode $1 $3 }
-    | Factor '/' Unary { DivNode $1 $3 }
-    | Factor '%' Unary { ModNode $1 $3 }
-    | Factor and Unary { AndNode $1 $3 }
+    : Factor '*' Unary { BinOpNode Mul $1 $3 }
+    | Factor '/' Unary { BinOpNode Div $1 $3 }
+    | Factor '%' Unary { BinOpNode Mod $1 $3 }
+    | Factor and Unary { BinOpNode And $1 $3 }
     | Unary { $1 }
 
 Unary
-    : '-' Term { NegNode $2 }
-    | not Term { NotNode $2 }
+    : '-' Term { UnOpNode Neg $2 }
+    | not Term { UnOpNode Not $2 }
     | Term { $1 }
 
 Term
@@ -151,7 +215,50 @@ data EntityType = Player | Enemy deriving Show
 data EntityNode = EntityNode {
     entityType :: EntityType,
     entityName :: String,
-    entityStats :: [StatNode]
+    entityStats :: [StatNode],
+    entityActions :: [ActionNode],
+    entityTriggers :: [TriggerNode]
+} deriving Show
+
+data ItemNode = ItemNode {
+    itemName :: String,
+    itemAttribs :: [String],
+    itemActions :: [ActionNode]
+} deriving Show
+
+data RoomNode = RoomNode {
+    roomName :: String,
+    roomEnemies :: [RoomEnemy],
+    roomItems :: [RoomItem],
+    doors :: [Door]
+} deriving Show
+
+data RoomEnemy = RoomEnemy {
+    roomEnemyName :: String,
+    roomEnemyType :: String
+} deriving Show
+
+data RoomItem = RoomItem {
+    roomItemName :: String,
+    roomItemType :: String
+} deriving Show
+
+data Door = Door {
+    doorName :: String,
+    doorTo :: String,
+    doorReq :: ExprNode
+} deriving Show
+
+data ActionNode = ActionNode {
+    actionName :: String,
+    actionTargets :: ExprNode,
+    actionStmts :: [StmtNode]
+} deriving Show
+
+data TriggerNode = TriggerNode {
+    triggerName :: String,
+    triggerOn :: ExprNode,
+    triggerStmts :: [StmtNode]
 } deriving Show
 
 data Declare = Declare {
@@ -209,20 +316,26 @@ data Prop = Prop {
     propName :: String
 } deriving Show
 
+data BinOp
+    = Add
+    | Sub
+    | Or
+    | Gt
+    | Lt
+    | Gte
+    | Lte
+    | Mul
+    | Div
+    | Mod
+    | And deriving Show
+
+data UnOp
+    = Neg
+    | Not deriving Show
+
 data ExprNode
-    = AddNode ExprNode ExprNode
-    | SubNode ExprNode ExprNode
-    | OrNode ExprNode ExprNode
-    | GtNode ExprNode ExprNode
-    | LtNode ExprNode ExprNode
-    | GteNode ExprNode ExprNode
-    | LteNode ExprNode ExprNode
-    | MulNode ExprNode ExprNode
-    | DivNode ExprNode ExprNode
-    | ModNode ExprNode ExprNode
-    | AndNode ExprNode ExprNode
-    | NegNode ExprNode
-    | NotNode ExprNode
+    = BinOpNode BinOp ExprNode ExprNode
+    | UnOpNode UnOp ExprNode
     | IntNode Int
     | DiceNode Dice
     | IdNode String
