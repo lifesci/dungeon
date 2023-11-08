@@ -1,3 +1,5 @@
+module Eval where
+
 import Parser
 import Data.Map(Map)
 import qualified Data.Map as Map

@@ -136,7 +136,7 @@ Trigger
 Stmt
     : let id '=' Expr ';' { DeclareNode Declare { declareVar=$2, declareVal=$4 } }
     | id '=' Expr ';' { AssignNode Assign { assignVar=$1, assignVal=$3 } }
-    | Prop '=' Expr ';' { AssignPropNode AssignProp { assignPropProp=$1, assignPropVal=$3 } }
+    | PropLiteral '=' Expr ';' { AssignPropNode AssignProp { assignPropProp=$1, assignPropVal=$3 } }
     | id '(' ExprList ')' ';' { FuncNode Func { funcName=$1, funcArgs=(rev $3) } }
     | while '(' Expr ')' '{' StmtList '}' { WhileNode While { whileCond=$3, whileStmts=(rev $6) } }
     | If { $1 }
@@ -193,9 +193,9 @@ Term
     | int { IntNode $1 }
     | dice { DiceNode Dice { diceCount=1, diceSize=1 } }
     | id { IdNode $1 }
-    | Prop { $1 }
+    | PropLiteral { PropNode $1 }
 
-Prop : id '.' id { PropNode Prop { propVar=$1, propName=$3 } }
+PropLiteral : id '.' id { Prop { propVar=$1, propName=$3 } }
 
 {
 parseError :: [Token] -> a
