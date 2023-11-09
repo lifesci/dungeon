@@ -9,6 +9,8 @@ copyright:           "2023 Author name here"
 extra-source-files:
 - README.md
 - CHANGELOG.md
+- src/Lexer.x
+- src/Parser.y
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -37,6 +39,9 @@ ghc-options:
 
 library:
   source-dirs: src
+  build-tools:
+  - happy
+  - alex
 
 executables:
   dungeon-exe:

@@ -14,52 +14,53 @@ $alpha = [a-zA-Z]
 tokens :-
     $white+;
 
-    "+" { \s -> TAdd }
-    "-" { \s -> TSub }
-    "*" { \s -> TMul }
-    "/" { \s -> TDiv }
-    "%" { \s -> TMod }
+    "+" { \_ -> TAdd }
+    "-" { \_ -> TSub }
+    "*" { \_ -> TMul }
+    "/" { \_ -> TDiv }
+    "%" { \_ -> TMod }
 
-    "and" { \s -> TAnd }
-    "or" { \s -> TOr }
-    "not" { \s -> TNot }
-    "==" { \s -> TEq }
-    "!=" { \s -> TNeq }
-    ">" { \s -> TGt }
-    "<" { \s -> TLt }
-    ">=" { \s -> TGte }
-    "<=" { \s -> TLte }
+    "and" { \_ -> TAnd }
+    "or" { \_ -> TOr }
+    "not" { \_ -> TNot }
+    "==" { \_ -> TEq }
+    "!=" { \_ -> TNeq }
+    ">" { \_ -> TGt }
+    "<" { \_ -> TLt }
+    ">=" { \_ -> TGte }
+    "<=" { \_ -> TLte }
 
-    "(" { \s -> TLParen }
-    ")" { \s -> TRParen }
-    "{" { \s -> TLBrace }
-    "}" { \s -> TRBrace }
+    "(" { \_ -> TLParen }
+    ")" { \_ -> TRParen }
+    "{" { \_ -> TLBrace }
+    "}" { \_ -> TRBrace }
 
-    "=" { \s -> TAssign }
+    "=" { \_ -> TAssign }
 
-    ";" { \s -> TSemicolon }
-    "." { \s -> TDot }
-    "," { \s -> TComma }
+    ";" { \_ -> TSemicolon }
+    "." { \_ -> TDot }
+    "," { \_ -> TComma }
 
-    "let" { \s -> TLet }
-    "if" { \s -> TIf }
-    "else" { \s -> TElse }
-    "while" { \s -> TWhile }
-    "player" { \s -> TPlayer }
-    "enemy" { \s -> TEnemy }
-    "enemies" { \s -> TEnemies }
-    "action" { \s -> TAction }
-    "targets" { \s -> TTargets }
-    "trigger" { \s -> TTrigger }
-    "on" { \s -> TOn }
-    "statblock" { \s -> TStatblock }
-    "stats" { \s -> TStats }
-    "item" { \s -> TItem }
-    "items" { \s -> TItems }
-    "doors" { \s -> TDoors }
-    "to" { \s -> TTo }
-    "requires" { \s -> TRequires }
-    "room" { \s -> TRoom }
+    "let" { \_ -> TLet }
+    "if" { \_ -> TIf }
+    "else" { \_ -> TElse }
+    "while" { \_ -> TWhile }
+    "player" { \_ -> TPlayer }
+    "enemy" { \_ -> TEnemy }
+    "enemies" { \_ -> TEnemies }
+    "action" { \_ -> TAction }
+    "targets" { \_ -> TTargets }
+    "trigger" { \_ -> TTrigger }
+    "on" { \_ -> TOn }
+    "statblock" { \_ -> TStatblock }
+    "stats" { \_ -> TStats }
+    "item" { \_ -> TItem }
+    "items" { \_ -> TItems }
+    "doors" { \_ -> TDoors }
+    "to" { \_ -> TTo }
+    "requires" { \_ -> TRequires }
+    "room" { \_ -> TRoom }
+    "game" { \_ -> TGame }
 
     @int { \s -> TInt (read s) }
     @id { \s -> TId s }
@@ -119,6 +120,7 @@ data Token
     | TTo
     | TRequires
     | TRoom
+    | TGame
 
     deriving (Eq, Show)
 

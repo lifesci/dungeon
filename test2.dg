@@ -1,0 +1,5 @@
+game test;
+
+statblock {}
+
+player me { stats {} }

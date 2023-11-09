@@ -58,9 +58,14 @@ import Lib(rev)
     to { TTo }
     requires { TRequires }
     room { TRoom }
+    game { TGame }
 %%
 
-Statblock: statblock '{' StatList '}' { StatBlockNode { stats=(rev $3) } }
+Dungeon: GameName Statblock Player EnemyList ItemList RoomList { DgNode { dgGame=$1, dgStatblock=$2, dgPlayer=$3, dgEnemies=(rev $4), dgItems=(rev $5), dgRooms=(rev $6) } }
+
+GameName: game id ';' { GameNode $2 }
+
+Statblock: statblock '{' StatList '}' { StatblockNode { stats=(rev $3) } }
 
 StatList
     : {- empty -} { []}
@@ -78,8 +83,16 @@ EnemyList
 Enemy
     : enemy id '{' stats '{' StatList '}' ActionList TriggerList '}' { EntityNode { entityType=Enemy, entityName=$2, entityStats=(rev $6), entityActions=(rev $8), entityTriggers=(rev $9) } }
 
+ItemList
+    : {- empty -} { [] }
+    | ItemList Item { $2 : $1 }
+
 Item
     : item id '<' IdList '>' '{' ActionList '}' { ItemNode { itemName=$2, itemAttribs=(rev $4), itemActions=(rev $7) } }
+
+RoomList
+    : {- empty -} { [] }
+    | RoomList Room { $2 : $1 }
 
 Room: room id '{' RoomEnemies RoomItems Doors '}' { RoomNode { roomName=$2, roomEnemies=$4, roomItems=$5, doors=$6 } }
 
@@ -201,7 +214,18 @@ PropLiteral : id '.' id { Prop { propVar=$1, propName=$3 } }
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
 
-data StatBlockNode = StatBlockNode {
+data DgNode = DgNode {
+    dgGame :: GameNode,
+    dgStatblock :: StatblockNode,
+    dgPlayer :: EntityNode,
+    dgEnemies :: [EntityNode],
+    dgItems :: [ItemNode],
+    dgRooms :: [RoomNode]
+} deriving Show
+
+data GameNode = GameNode String deriving Show
+
+data StatblockNode = StatblockNode {
     stats :: [StatNode]
 } deriving Show
 
