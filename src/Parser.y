@@ -110,7 +110,7 @@ RoomItemList
     : {- empty -} { [] }
     | RoomItemList RoomItem { $2 : $1 }
 
-RoomItem: id '=' id { RoomItem { roomItemName=$1, roomItemType=$3 } }
+RoomItem: id '=' id ';' { RoomItem { roomItemName=$1, roomItemType=$3 } }
 
 Doors: doors '{' DoorList '}' { rev $3 }
 
@@ -141,7 +141,7 @@ TriggerList
     | TriggerList Trigger { $2 : $1 }
 
 Action
-    : action id targets '(' Expr ')' '{' StmtList '}' { ActionNode { actionName=$2, actionTargets=$5, actionStmts=$8 } }
+    : action id targets '(' Expr ')' '{' StmtList '}' { ActionNode { actionName=$2, actionTargets=$5, actionStmts=(rev $8) } }
 
 Trigger
     : trigger id on '(' Expr ')' '{' StmtList '}' { TriggerNode { triggerName=$2, triggerOn=$5, triggerStmts=$8 } }
