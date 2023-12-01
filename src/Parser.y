@@ -1,7 +1,9 @@
 {
 module Parser where
 import Lexer
-import Lib(rev)
+import Lib(rev, listToMap)
+import Data.Map(Map)
+import qualified Data.Map as Map
 }
 
 %name parse
@@ -61,11 +63,20 @@ import Lib(rev)
     game { TGame }
 %%
 
-Dungeon: GameName Statblock Player EnemyList ItemList RoomList { DgNode { dgGame=$1, dgStatblock=$2, dgPlayer=$3, dgEnemies=(rev $4), dgItems=(rev $5), dgRooms=(rev $6) } }
+Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
+    DgNode {
+        dgGame=$1,
+        dgStatblock=(stats $2),
+        dgPlayer=(populateEntityStats $2 $3),
+        dgEnemies=(listToMap (map (populateEntityStats $2) (rev $4)) entityName id),
+        dgItems=(listToMap (rev $5) itemName id),
+        dgRooms=(listToMap (rev $6) roomName id)
+    }
+}
 
 GameName: game id ';' { GameNode $2 }
 
-Statblock: statblock '{' StatList '}' { StatblockNode { stats=(rev $3) } }
+Statblock: statblock '{' StatList '}' { StatblockNode { stats=(listToMap (rev $3) statName statVal) } }
 
 StatList
     : {- empty -} { []}
@@ -74,21 +85,21 @@ StatList
 Stat: id '=' int ';' { StatNode { statName=$1, statVal=$3 } }
 
 Player
-    : player id '{' stats '{' StatList '}' ActionList TriggerList '}' { EntityNode { entityType=Player, entityName=$2, entityStats=(rev $6), entityActions=(rev $8), entityTriggers=(rev $9) } }
+    : player id '{' stats '{' StatList '}' ActionList TriggerList '}' { EntityNode { entityType=Player, entityName=$2, entityStats=(listToMap (rev $6) statName statVal), entityActions=(listToMap (rev $8) actionName id), entityTriggers=(listToMap (rev $9) triggerName id) } }
 
 EnemyList
     : {- empty -} { [] }
     | EnemyList Enemy { $2 : $1 }
 
 Enemy
-    : enemy id '{' stats '{' StatList '}' ActionList TriggerList '}' { EntityNode { entityType=Enemy, entityName=$2, entityStats=(rev $6), entityActions=(rev $8), entityTriggers=(rev $9) } }
+    : enemy id '{' stats '{' StatList '}' ActionList TriggerList '}' { EntityNode { entityType=Enemy, entityName=$2, entityStats=(listToMap (rev $6) statName statVal), entityActions=(listToMap (rev $8) actionName id), entityTriggers=(listToMap (rev $9) triggerName id) } }
 
 ItemList
     : {- empty -} { [] }
     | ItemList Item { $2 : $1 }
 
 Item
-    : item id '<' IdList '>' '{' ActionList '}' { ItemNode { itemName=$2, itemAttribs=(rev $4), itemActions=(rev $7) } }
+    : item id '<' IdList '>' '{' ActionList '}' { ItemNode { itemName=$2, itemAttribs=(rev $4), itemActions=(listToMap (rev $7) actionName id) } }
 
 RoomList
     : {- empty -} { [] }
@@ -216,17 +227,17 @@ parseError _ = error "Parse error"
 
 data DgNode = DgNode {
     dgGame :: GameNode,
-    dgStatblock :: StatblockNode,
+    dgStatblock :: Map String Int,
     dgPlayer :: EntityNode,
-    dgEnemies :: [EntityNode],
-    dgItems :: [ItemNode],
-    dgRooms :: [RoomNode]
+    dgEnemies :: Map String EntityNode,
+    dgItems :: Map String ItemNode,
+    dgRooms :: Map String RoomNode
 } deriving Show
 
 data GameNode = GameNode String deriving Show
 
 data StatblockNode = StatblockNode {
-    stats :: [StatNode]
+    stats :: Map String Int
 } deriving Show
 
 data StatNode = StatNode {
@@ -239,15 +250,15 @@ data EntityType = Player | Enemy deriving Show
 data EntityNode = EntityNode {
     entityType :: EntityType,
     entityName :: String,
-    entityStats :: [StatNode],
-    entityActions :: [ActionNode],
-    entityTriggers :: [TriggerNode]
+    entityStats :: Map String Int,
+    entityActions :: Map String ActionNode,
+    entityTriggers :: Map String TriggerNode
 } deriving Show
 
 data ItemNode = ItemNode {
     itemName :: String,
     itemAttribs :: [String],
-    itemActions :: [ActionNode]
+    itemActions :: Map String ActionNode
 } deriving Show
 
 data RoomNode = RoomNode {
@@ -365,4 +376,13 @@ data ExprNode
     | IdNode String
     | PropNode Prop deriving Show
 
+populateEntityStats :: StatblockNode -> EntityNode -> EntityNode
+populateEntityStats s e = EntityNode {
+    entityType=(entityType e),
+    entityName=(entityName e),
+    entityStats=(Map.union (entityStats e) (stats s)),
+    entityActions=(entityActions e),
+    entityTriggers=(entityTriggers e)
 }
+}
+
