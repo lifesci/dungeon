@@ -18,6 +18,14 @@ emptyScope = (Scope Map.empty Nothing)
 addScopeVar :: Scope -> String -> Int -> Scope
 addScopeVar (Scope vars parent) var val = Scope (Map.insert var val vars) parent
 
+updateScopeVar :: Scope -> String -> Int -> Scope
+updateScopeVar (Scope vars Nothing) var val = case (Map.lookup var vars) of
+    Nothing -> error "Referenced unbound variable"
+    (Just x) -> Scope (Map.insert var val vars) Nothing
+updateScopeVar (Scope vars (Just parent)) var val = case (Map.lookup var vars) of
+    Nothing -> Scope vars (Just (updateScopeVar parent var val))
+    (Just x) -> Scope (Map.insert var val vars) (Just parent)
+
 addScope :: Scope -> Scope
 addScope x = (Scope Map.empty (Just x))
 
