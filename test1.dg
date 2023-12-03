@@ -32,7 +32,7 @@ item test_item<weapon> () {
 room test_room1 {
     enemies {}
     items {
-        t1 = test_item;
+        t1 = test_item();
     }
     doors {
         door1 to test_room2;
@@ -45,8 +45,8 @@ room test_room2 {
         e2 = test_enemy2;
     }
     items {
-        test1 = test_item;
-        test2 = test_item;
+        test1 = test_item();
+        test2 = test_item();
     }
     doors {
         door2 to test_room1 requires(key);

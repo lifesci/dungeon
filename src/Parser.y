@@ -123,7 +123,7 @@ RoomItemList
     : {- empty -} { [] }
     | RoomItemList RoomItem { $2 : $1 }
 
-RoomItem: id '=' id ';' { RoomItem { roomItemName=$1, roomItemType=$3 } }
+RoomItem: id '=' id '(' ExprList ')' ';' { RoomItem { roomItemName=$1, roomItemType=$3, roomItemArgs=(rev $5) } }
 
 Doors: doors '{' DoorList '}' { rev $3 }
 
@@ -285,7 +285,8 @@ data RoomEnemy = RoomEnemy {
 
 data RoomItem = RoomItem {
     roomItemName :: String,
-    roomItemType :: String
+    roomItemType :: String,
+    roomItemArgs :: [ExprNode]
 } deriving Show
 
 data Door = Door {
