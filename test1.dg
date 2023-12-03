@@ -21,7 +21,7 @@ enemy test_enemy {
     trigger test_trigger on (c or not d) {}
 }
 
-item test_item<weapon> {
+item test_item<weapon> () {
     action attack targets (entity) {
         let dmg = 5;
         target.hp = target.hp - dmg;

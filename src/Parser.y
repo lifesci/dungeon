@@ -4,6 +4,8 @@ import Lexer
 import Lib(rev, listToMap)
 import Data.Map(Map)
 import qualified Data.Map as Map
+import Data.Set(Set)
+import qualified Data.Set as Set
 }
 
 %name parse
@@ -69,7 +71,7 @@ Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
         dgStatblock=(stats $2),
         dgPlayer=(populateEntityStats $2 $3),
         dgEnemies=(listToMap (map (populateEntityStats $2) (rev $4)) entityName id),
-        dgItems=(listToMap (rev $5) itemName id),
+        dgItems=(listToMap (rev $5) itemTemplateName id),
         dgRooms=(listToMap (rev $6) roomName id)
     }
 }
@@ -99,7 +101,7 @@ ItemList
     | ItemList Item { $2 : $1 }
 
 Item
-    : item id '<' IdList '>' '{' ActionList '}' { ItemNode { itemName=$2, itemAttribs=(rev $4), itemActions=(listToMap (rev $7) actionName id) } }
+    : item id '<' IdList '>' '(' IdList ')' '{' ActionList '}' { ItemTemplateNode { itemTemplateName=$2, itemTemplateAttribs=(rev $4), itemTemplateArgs=(rev $7), itemTemplateActions=(listToMap (rev $10) actionName id) } }
 
 RoomList
     : {- empty -} { [] }
@@ -230,7 +232,7 @@ data DgNode = DgNode {
     dgStatblock :: Map String Int,
     dgPlayer :: EntityNode,
     dgEnemies :: Map String EntityNode,
-    dgItems :: Map String ItemNode,
+    dgItems :: Map String ItemTemplateNode,
     dgRooms :: Map String RoomNode
 } deriving Show
 
@@ -255,9 +257,17 @@ data EntityNode = EntityNode {
     entityTriggers :: Map String TriggerNode
 } deriving Show
 
+data ItemTemplateNode = ItemTemplateNode {
+    itemTemplateName :: String,
+    itemTemplateAttribs :: [String],
+    itemTemplateArgs :: [String],
+    itemTemplateActions :: Map String ActionNode
+} deriving Show
+
 data ItemNode = ItemNode {
     itemName :: String,
-    itemAttribs :: [String],
+    itemAttribs :: Set String,
+    itemArgs :: Map String ExprNode,
     itemActions :: Map String ActionNode
 } deriving Show
 
