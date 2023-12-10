@@ -6,7 +6,7 @@ import qualified Data.Map as Map
 
 data GameState = GameState {
     currentRoom :: String,
-    rooms :: Map String RoomNode,
+    rooms :: Map String Room,
     scope :: Scope
 } deriving Show
 

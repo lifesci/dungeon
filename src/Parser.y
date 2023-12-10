@@ -72,7 +72,7 @@ Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
         dgPlayer=$3,
         dgEnemies=(rev $4),
         dgItems=(listToMap (rev $5) itemTemplateName id),
-        dgRooms=(listToMap (rev $6) roomName id)
+        dgRooms=(rev $6)
     }
 }
 
@@ -125,7 +125,14 @@ RoomList
     : {- empty -} { [] }
     | RoomList Room { $2 : $1 }
 
-Room: room id '{' RoomEnemies RoomItems Doors '}' { RoomNode { roomName=$2, roomEnemies=$4, roomItems=$5, doors=$6 } }
+Room: room id '{' RoomEnemies RoomItems Doors '}' {
+    RoomTemplateNode {
+        roomTemplateName=$2,
+        roomTemplateEntities=$4,
+        roomTemplateItems=$5,
+        roomTemplateDoors=$6
+    }
+}
 
 RoomEnemies: enemies '{' RoomEnemyList '}' { rev $3 }
 
@@ -133,7 +140,13 @@ RoomEnemyList
     : {- empty -} { [] }
     | RoomEnemyList RoomEnemy { $2 : $1 }
 
-RoomEnemy: id '=' id '(' ExprList ')' ';' { RoomEnemy { roomEnemyName=$1, roomEnemyType=$3, roomEnemyArgs=(rev $5) } }
+RoomEnemy: id '=' id '(' ExprList ')' ';' {
+    RoomTemplateEntity {
+        roomTemplateEntityName=$1,
+        roomTemplateEntityType=$3,
+        roomTemplateEntityArgs=(rev $5)
+    }
+}
 
 RoomItems: items '{' RoomItemList '}' { rev $3 }
 
@@ -141,7 +154,13 @@ RoomItemList
     : {- empty -} { [] }
     | RoomItemList RoomItem { $2 : $1 }
 
-RoomItem: id '=' id '(' ExprList ')' ';' { RoomItem { roomItemName=$1, roomItemType=$3, roomItemArgs=(rev $5) } }
+RoomItem: id '=' id '(' ExprList ')' ';' {
+    RoomTemplateItem {
+        roomTemplateItemName=$1,
+        roomTemplateItemType=$3,
+        roomTemplateItemArgs=(rev $5)
+    }
+}
 
 Doors: doors '{' DoorList '}' { rev $3 }
 
@@ -251,7 +270,7 @@ data DgNode = DgNode {
     dgPlayer :: EntityTemplateNode,
     dgEnemies :: [EntityTemplateNode],
     dgItems :: Map String ItemTemplateNode,
-    dgRooms :: Map String RoomNode
+    dgRooms :: [RoomTemplateNode]
 } deriving Show
 
 data GameNode = GameNode String deriving Show
@@ -266,14 +285,6 @@ data StatNode = StatNode {
 } deriving Show
 
 data EntityType = Player | Enemy deriving Show
-
-data EntityNode = EntityNode {
-    entityType :: EntityType,
-    entityName :: String,
-    entityStats :: Map String Int,
-    entityActions :: Map String ActionNode,
-    entityTriggers :: Map String TriggerNode
-} deriving Show
 
 data EntityTemplateNode = EntityTemplateNode {
     entityTemplateType :: EntityType,
@@ -291,30 +302,23 @@ data ItemTemplateNode = ItemTemplateNode {
     itemTemplateActions :: Map String ActionNode
 } deriving Show
 
-data ItemNode = ItemNode {
-    itemName :: String,
-    itemAttribs :: Set String,
-    itemArgs :: Map String ExprNode,
-    itemActions :: Map String ActionNode
+data RoomTemplateNode = RoomTemplateNode {
+    roomTemplateName :: String,
+    roomTemplateEntities :: [RoomTemplateEntity],
+    roomTemplateItems :: [RoomTemplateItem],
+    roomTemplateDoors :: [Door]
 } deriving Show
 
-data RoomNode = RoomNode {
-    roomName :: String,
-    roomEnemies :: [RoomEnemy],
-    roomItems :: [RoomItem],
-    doors :: [Door]
+data RoomTemplateEntity = RoomTemplateEntity {
+    roomTemplateEntityName :: String,
+    roomTemplateEntityType :: String,
+    roomTemplateEntityArgs :: [ExprNode]
 } deriving Show
 
-data RoomEnemy = RoomEnemy {
-    roomEnemyName :: String,
-    roomEnemyType :: String,
-    roomEnemyArgs :: [ExprNode]
-} deriving Show
-
-data RoomItem = RoomItem {
-    roomItemName :: String,
-    roomItemType :: String,
-    roomItemArgs :: [ExprNode]
+data RoomTemplateItem = RoomTemplateItem {
+    roomTemplateItemName :: String,
+    roomTemplateItemType :: String,
+    roomTemplateItemArgs :: [ExprNode]
 } deriving Show
 
 data Door = Door {
@@ -415,13 +419,79 @@ data ExprNode
     | IdNode String
     | PropNode Prop deriving Show
 
-populateEntityStats :: StatblockNode -> EntityNode -> EntityNode
-populateEntityStats s e = EntityNode {
-    entityType=(entityType e),
-    entityName=(entityName e),
-    entityStats=(Map.union (entityStats e) (stats s)),
-    entityActions=(entityActions e),
-    entityTriggers=(entityTriggers e)
+data Room = Room {
+    roomName :: String,
+    roomItems :: Map String Item,
+    roomEntities :: Map String Entity,
+    roomDoors :: [Door]
+} deriving Show
+
+data Entity = Entity {
+    entityType :: EntityType,
+    entityName :: String,
+    entityArgs :: Map String ExprNode,
+    entityStats :: Map String Int,
+    entityActions :: Map String ActionNode,
+    entityTriggers :: Map String TriggerNode
+} deriving Show
+
+data Item = Item {
+    itemName :: String,
+    itemAttribs :: Set String,
+    itemArgs :: Map String ExprNode,
+    itemActions :: Map String ActionNode
+} deriving Show
+
+populateRoom :: RoomTemplateNode -> [EntityTemplateNode] -> [ItemTemplateNode] -> StatblockNode -> Room
+populateRoom rt ets its sb = Room {
+    roomName=(roomTemplateName rt),
+    roomEntities=(
+        listToMap
+            (
+                map
+                    (
+                        entityFromTemplate
+                            (listToMap ets entityTemplateName id)
+                            sb
+                    )
+                    (roomTemplateEntities rt)
+            )
+            entityName
+            id
+    ),
+    roomItems=Map.empty,
+    roomDoors=(roomTemplateDoors rt)
 }
+
+entityFromTemplate :: Map String EntityTemplateNode -> StatblockNode -> RoomTemplateEntity -> Entity
+entityFromTemplate ets sb rte =
+    let
+        template = case (Map.lookup (roomTemplateEntityType rte) ets) of
+            Just x -> x
+            Nothing -> error "Unknown entity type"
+    in
+        Entity {
+            entityType=(entityTemplateType template),
+            entityName=(roomTemplateEntityName rte),
+            entityArgs=(
+                Map.fromList (
+                    zip
+                        (entityTemplateArgs template)
+                        (roomTemplateEntityArgs rte)
+                )
+            ),
+            entityStats=(
+                Map.union
+                    (
+                        Map.intersection
+                            (entityTemplateStats template)
+                            (stats sb)
+                    )
+                    (stats sb)
+            ),
+            entityActions=(entityTemplateActions template),
+            entityTriggers=(entityTemplateTriggers template)
+        }
+
 }
 

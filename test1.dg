@@ -13,7 +13,7 @@ player me {
     trigger test_trigger on (c or not d) {}
 }
 
-enemy test_enemy {
+enemy test_enemy() {
     stats {
         mp = 1;
     }
@@ -21,7 +21,7 @@ enemy test_enemy {
     trigger test_trigger on (c or not d) {}
 }
 
-item test_item<weapon> () {
+item test_item<weapon>() {
     action attack targets (entity) {
         let dmg = 5;
         target.hp = target.hp - dmg;
@@ -41,8 +41,8 @@ room test_room1 {
 
 room test_room2 {
     enemies {
-        e1 = test_enemy;
-        e2 = test_enemy2;
+        e1 = test_enemy();
+        e2 = test_enemy2();
     }
     items {
         test1 = test_item();
