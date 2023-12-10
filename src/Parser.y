@@ -69,8 +69,8 @@ Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
     DgNode {
         dgGame=$1,
         dgStatblock=(stats $2),
-        dgPlayer=(populateEntityStats $2 $3),
-        dgEnemies=(listToMap (map (populateEntityStats $2) (rev $4)) entityName id),
+        dgPlayer=$3,
+        dgEnemies=(rev $4),
         dgItems=(listToMap (rev $5) itemTemplateName id),
         dgRooms=(listToMap (rev $6) roomName id)
     }
@@ -87,14 +87,32 @@ StatList
 Stat: id '=' int ';' { StatNode { statName=$1, statVal=$3 } }
 
 Player
-    : player id '{' stats '{' StatList '}' ActionList TriggerList '}' { EntityNode { entityType=Player, entityName=$2, entityStats=(listToMap (rev $6) statName statVal), entityActions=(listToMap (rev $8) actionName id), entityTriggers=(listToMap (rev $9) triggerName id) } }
+    : player id '{' stats '{' StatList '}' ActionList TriggerList '}' {
+        EntityTemplateNode {
+            entityTemplateType=Player,
+            entityTemplateName=$2,
+            entityTemplateArgs=[],
+            entityTemplateStats=(listToMap (rev $6) statName statVal),
+            entityTemplateActions=(listToMap (rev $8) actionName id),
+            entityTemplateTriggers=(listToMap (rev $9) triggerName id)
+        }
+    }
 
 EnemyList
     : {- empty -} { [] }
     | EnemyList Enemy { $2 : $1 }
 
 Enemy
-    : enemy id '{' stats '{' StatList '}' ActionList TriggerList '}' { EntityNode { entityType=Enemy, entityName=$2, entityStats=(listToMap (rev $6) statName statVal), entityActions=(listToMap (rev $8) actionName id), entityTriggers=(listToMap (rev $9) triggerName id) } }
+    : enemy id '(' IdList ')' '{' stats '{' StatList '}' ActionList TriggerList '}' {
+        EntityTemplateNode {
+            entityTemplateType=Enemy,
+            entityTemplateName=$2,
+            entityTemplateArgs=(rev $4),
+            entityTemplateStats=(listToMap (rev $9) statName statVal),
+            entityTemplateActions=(listToMap (rev $11) actionName id),
+            entityTemplateTriggers=(listToMap (rev $12) triggerName id)
+        }
+    }
 
 ItemList
     : {- empty -} { [] }
@@ -115,7 +133,7 @@ RoomEnemyList
     : {- empty -} { [] }
     | RoomEnemyList RoomEnemy { $2 : $1 }
 
-RoomEnemy: id '=' id ';' { RoomEnemy { roomEnemyName=$1, roomEnemyType=$3 } }
+RoomEnemy: id '=' id '(' ExprList ')' ';' { RoomEnemy { roomEnemyName=$1, roomEnemyType=$3, roomEnemyArgs=(rev $5) } }
 
 RoomItems: items '{' RoomItemList '}' { rev $3 }
 
@@ -230,8 +248,8 @@ parseError _ = error "Parse error"
 data DgNode = DgNode {
     dgGame :: GameNode,
     dgStatblock :: Map String Int,
-    dgPlayer :: EntityNode,
-    dgEnemies :: Map String EntityNode,
+    dgPlayer :: EntityTemplateNode,
+    dgEnemies :: [EntityTemplateNode],
     dgItems :: Map String ItemTemplateNode,
     dgRooms :: Map String RoomNode
 } deriving Show
@@ -257,6 +275,15 @@ data EntityNode = EntityNode {
     entityTriggers :: Map String TriggerNode
 } deriving Show
 
+data EntityTemplateNode = EntityTemplateNode {
+    entityTemplateType :: EntityType,
+    entityTemplateName :: String,
+    entityTemplateArgs :: [String],
+    entityTemplateStats :: Map String Int,
+    entityTemplateActions :: Map String ActionNode,
+    entityTemplateTriggers :: Map String TriggerNode
+} deriving Show
+
 data ItemTemplateNode = ItemTemplateNode {
     itemTemplateName :: String,
     itemTemplateAttribs :: [String],
@@ -280,7 +307,8 @@ data RoomNode = RoomNode {
 
 data RoomEnemy = RoomEnemy {
     roomEnemyName :: String,
-    roomEnemyType :: String
+    roomEnemyType :: String,
+    roomEnemyArgs :: [ExprNode]
 } deriving Show
 
 data RoomItem = RoomItem {
