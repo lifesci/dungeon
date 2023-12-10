@@ -463,6 +463,24 @@ populateRoom rt ets its sb = Room {
     roomDoors=(roomTemplateDoors rt)
 }
 
+itemFromTemplate :: Map String ItemTemplateNode -> RoomTemplateItem -> Item
+itemFromTemplate its rti =
+    let
+        template = case (Map.lookup (roomTemplateItemType rti) its) of
+            Just x -> x
+            Nothing -> error "Unknown item type"
+    in
+        Item {
+            itemName=(roomTemplateItemName rti),
+            itemAttribs=(Set.fromList (itemTemplateAttribs template)),
+            itemArgs=Map.fromList (
+                    zip
+                        (itemTemplateArgs template)
+                        (roomTemplateItemArgs rti)
+                ),
+            itemActions=(itemTemplateActions template)
+        }
+
 entityFromTemplate :: Map String EntityTemplateNode -> StatblockNode -> RoomTemplateEntity -> Entity
 entityFromTemplate ets sb rte =
     let
