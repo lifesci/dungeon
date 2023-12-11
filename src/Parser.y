@@ -421,8 +421,8 @@ data ExprNode
 
 data Room = Room {
     roomName :: String,
-    roomItems :: Map String Item,
     roomEntities :: Map String Entity,
+    roomItems :: Map String Item,
     roomDoors :: [Door]
 } deriving Show
 
@@ -446,20 +446,31 @@ populateRoom :: RoomTemplateNode -> [EntityTemplateNode] -> [ItemTemplateNode] -
 populateRoom rt ets its sb = Room {
     roomName=(roomTemplateName rt),
     roomEntities=(
+        let entityTemplateMap = (listToMap ets entityTemplateName id) in
         listToMap
             (
                 map
                     (
                         entityFromTemplate
-                            (listToMap ets entityTemplateName id)
+                            entityTemplateMap
                             sb
                     )
                     (roomTemplateEntities rt)
             )
             entityName
             id
+        ),
+    roomItems=(
+        let itemTemplateMap = (listToMap its itemTemplateName id) in
+        listToMap
+            (
+                map
+                    (itemFromTemplate itemTemplateMap)
+                    (roomTemplateItems rt)
+            )
+            itemName
+            id
     ),
-    roomItems=Map.empty,
     roomDoors=(roomTemplateDoors rt)
 }
 
