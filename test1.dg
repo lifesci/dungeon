@@ -42,7 +42,6 @@ room test_room1 {
 room test_room2 {
     enemies {
         e1 = test_enemy();
-        e2 = test_enemy2();
     }
     items {
         test1 = test_item();
