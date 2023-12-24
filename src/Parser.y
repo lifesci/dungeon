@@ -69,10 +69,18 @@ Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
     DgNode {
         dgGame=$1,
         dgStatblock=(stats $2),
-        dgPlayer=$3,
+        dgPlayerTemplate=$3,
+        dgPlayer=(Entity {
+            entityType=(entityTemplateType $3),
+            entityName=(entityTemplateName $3),
+            entityArgs=Map.empty,
+            entityStats=(getEntityStats $2 $3),
+            entityActions=(entityTemplateActions $3),
+            entityTriggers=(entityTemplateTriggers $3)
+        }),
         dgEnemies=(rev $4),
         dgItems=(listToMap (rev $5) itemTemplateName id),
-        dgRooms=(rev $6)
+        dgRooms=(map (populateRoom (rev $4) (rev $5) $2) (rev $6))
     }
 }
 
@@ -267,10 +275,11 @@ parseError _ = error "Parse error"
 data DgNode = DgNode {
     dgGame :: GameNode,
     dgStatblock :: Map String Int,
-    dgPlayer :: EntityTemplateNode,
+    dgPlayerTemplate :: EntityTemplateNode,
+    dgPlayer :: Entity,
     dgEnemies :: [EntityTemplateNode],
     dgItems :: Map String ItemTemplateNode,
-    dgRooms :: [RoomTemplateNode]
+    dgRooms :: [Room]
 } deriving Show
 
 data GameNode = GameNode String deriving Show
@@ -442,8 +451,8 @@ data Item = Item {
     itemActions :: Map String ActionNode
 } deriving Show
 
-populateRoom :: RoomTemplateNode -> [EntityTemplateNode] -> [ItemTemplateNode] -> StatblockNode -> Room
-populateRoom rt ets its sb = Room {
+populateRoom :: [EntityTemplateNode] -> [ItemTemplateNode] -> StatblockNode -> RoomTemplateNode -> Room
+populateRoom ets its sb rt = Room {
     roomName=(roomTemplateName rt),
     roomEntities=(
         let entityTemplateMap = (listToMap ets entityTemplateName id) in
@@ -509,18 +518,20 @@ entityFromTemplate ets sb rte =
                         (roomTemplateEntityArgs rte)
                 )
             ),
-            entityStats=(
-                Map.union
-                    (
-                        Map.intersection
-                            (entityTemplateStats template)
-                            (stats sb)
-                    )
-                    (stats sb)
-            ),
+            entityStats=(getEntityStats sb template),
             entityActions=(entityTemplateActions template),
             entityTriggers=(entityTemplateTriggers template)
         }
+
+getEntityStats :: StatblockNode -> EntityTemplateNode -> Map String Int
+getEntityStats sb template =
+    Map.union
+        (
+            Map.intersection
+                (entityTemplateStats template)
+                (stats sb)
+        )
+        (stats sb)
 
 }
 
