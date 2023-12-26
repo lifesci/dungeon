@@ -80,7 +80,7 @@ Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
         }),
         dgEnemies=(rev $4),
         dgItems=(listToMap (rev $5) itemTemplateName id),
-        dgRooms=(map (populateRoom (rev $4) (rev $5) $2) (rev $6))
+        dgRooms=(listToMap (map (populateRoom (rev $4) (rev $5) $2) (rev $6)) roomName id)
     }
 }
 
@@ -279,7 +279,7 @@ data DgNode = DgNode {
     dgPlayer :: Entity,
     dgEnemies :: [EntityTemplateNode],
     dgItems :: Map String ItemTemplateNode,
-    dgRooms :: [Room]
+    dgRooms :: Map String Room
 } deriving Show
 
 data GameNode = GameNode String deriving Show
