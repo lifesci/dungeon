@@ -25,6 +25,7 @@ dependencies:
 - base >= 4.7 && < 5
 - array
 - containers
+- random
 
 ghc-options:
 - -Wall

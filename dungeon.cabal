@@ -45,6 +45,7 @@ library
       array
     , base >=4.7 && <5
     , containers
+    , random
   default-language: Haskell2010
 
 executable dungeon-exe
@@ -61,6 +62,7 @@ executable dungeon-exe
     , base >=4.7 && <5
     , containers
     , dungeon
+    , random
   default-language: Haskell2010
 
 test-suite dungeon-test
@@ -78,4 +80,5 @@ test-suite dungeon-test
     , base >=4.7 && <5
     , containers
     , dungeon
+    , random
   default-language: Haskell2010

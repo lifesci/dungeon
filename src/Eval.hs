@@ -5,20 +5,23 @@ import Data.Map(Map)
 import qualified Data.Map as Map
 import Scope(Scope)
 import qualified Scope as Scope
+import System.Random(StdGen, randomR)
 
 data GameState = GameState {
     currentRoom :: String,
     scope :: Scope,
     game :: DgNode,
-    running :: Bool
+    running :: Bool,
+    rng :: StdGen
 } deriving Show
 
-buildState :: DgNode -> GameState
-buildState dgn = GameState {
+buildState :: StdGen -> DgNode -> GameState
+buildState rng dgn = GameState {
     scope=Scope.empty,
     currentRoom="test",
     game=dgn,
-    running=True
+    running=True,
+    rng=rng
 }
 
 boolToInt :: Bool -> Int
@@ -28,22 +31,43 @@ intToBool :: Int -> Bool
 intToBool x = x /= 0
 
 evalStmt :: StmtNode -> GameState -> GameState
-evalStmt (DeclareNode d) state = GameState {
-    currentRoom=(currentRoom state),
-    scope=(evalDeclare (declareVar d) (declareVal d) (scope state)),
-    game=(game state),
-    running=(running state)
-}
-evalStmt (AssignNode a) state =  GameState {
-    currentRoom=(currentRoom state),
-    scope=evalDeclare (assignVar a) (assignVal a) (scope state),
-    game=(game state),
-    running=(running state)
-}
+evalStmt (DeclareNode d) state =
+    let
+        (newScope, newRng) = evalDeclare d (scope state) (rng state)
+    in
+        GameState {
+            currentRoom=(currentRoom state),
+            scope=(newScope),
+            game=(game state),
+            running=(running state),
+            rng=newRng
+        }
+evalStmt (AssignNode a) state =
+    let
+        (newScope, newRng) = evalAssign a (scope state) (rng state)
+    in
+        GameState {
+            currentRoom=(currentRoom state),
+            scope=newScope,
+            game=(game state),
+            running=(running state),
+            rng=newRng
+        }
 evalStmt x y = error "Not implemented"
 
-evalDeclare :: String -> ExprNode -> Scope -> Scope
-evalDeclare var val scope = Scope.add scope var (evalExpr val scope)
+evalDeclare :: Declare -> Scope -> StdGen -> (Scope, StdGen)
+evalDeclare d scope rng =
+    let
+        (val, newRng) = evalExpr (declareVal d) scope rng
+    in
+        (Scope.add scope (declareVar d) val, newRng)
+
+evalAssign :: Assign -> Scope -> StdGen -> (Scope, StdGen)
+evalAssign a scope rng =
+    let
+        (val, newRng) = evalExpr (assignVal a) scope rng
+    in
+        (Scope.update scope (assignVar a) val, newRng)
 
 and' :: Int -> Int -> Int
 and' x y = boolToInt ((intToBool x) && intToBool y)
@@ -63,8 +87,8 @@ gte x y = boolToInt (x >= y)
 lte :: Int -> Int -> Int
 lte x y = boolToInt (x <= y)
 
-evalExpr :: ExprNode -> Scope -> Int
-evalExpr (BinOpNode op x y) scope = let
+evalExpr :: ExprNode -> Scope -> StdGen -> (Int, StdGen)
+evalExpr (BinOpNode op x y) scope rng = let
     f = case op of
         Add -> (+)
         Sub -> (-)
@@ -77,13 +101,21 @@ evalExpr (BinOpNode op x y) scope = let
         Lt -> lt
         Gte -> gte
         Lte -> lte
+    (lVal, lRng) = evalExpr x scope rng
     in
-        f (evalExpr x scope) (evalExpr y scope)
+        let
+            (rVal, rRng) = evalExpr y scope lRng
+        in
+            ((f lVal rVal), rRng)
 
-evalExpr (UnOpNode op x) scope = case op of
-    Neg -> -(evalExpr x scope)
-    Not -> boolToInt (not (intToBool (evalExpr x scope)))
-evalExpr (IntNode x) scope = x
-evalExpr (IdNode id) scope = Scope.search scope id
-evalExpr (PropNode p) scope = 1
-evalExpr (DiceNode d) scope = 1
+evalExpr (UnOpNode op x) scope rng =
+    let
+        (val, newRng) = evalExpr x scope rng
+    in
+        case op of
+            Neg -> (-(val), newRng)
+            Not -> (boolToInt (not (intToBool (val))), newRng)
+evalExpr (IntNode x) scope rng = (x, rng)
+evalExpr (IdNode id) scope rng = (Scope.search scope id, rng)
+evalExpr (PropNode p) scope rng = (1, rng)
+evalExpr (DiceNode d) scope rng = randomR ((diceCount d), (diceCount d)*(diceSize d)) rng
