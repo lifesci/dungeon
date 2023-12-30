@@ -30,8 +30,26 @@ boolToInt x = if x then 1 else 0
 intToBool :: Int -> Bool
 intToBool x = x /= 0
 
-evalStmt :: StmtNode -> GameState -> GameState
-evalStmt (DeclareNode d) state =
+
+
+evalStmtBlock :: [StmtNode] -> GameState -> GameState
+evalStmtBlock [] state = GameState {
+    currentRoom=(currentRoom state),
+    scope=(Scope.parent (scope state)),
+    game=(game state),
+    running=(running state),
+    rng=(rng state)
+}
+evalStmtBlock (x:xs) state =
+    if
+        (running state)
+    then
+        evalStmtBlock xs (evalStmt state x)
+    else
+        state
+
+evalStmt :: GameState -> StmtNode -> GameState
+evalStmt state (DeclareNode d) =
     let
         (newScope, newRng) = evalDeclare d (scope state) (rng state)
     in
@@ -42,7 +60,7 @@ evalStmt (DeclareNode d) state =
             running=(running state),
             rng=newRng
         }
-evalStmt (AssignNode a) state =
+evalStmt state (AssignNode a) =
     let
         (newScope, newRng) = evalAssign a (scope state) (rng state)
     in
@@ -53,6 +71,31 @@ evalStmt (AssignNode a) state =
             running=(running state),
             rng=newRng
         }
+evalStmt state (WhileNode w) =
+    let
+        (condVal, newRng) = evalExpr (whileCond w) (scope state) (rng state)
+    in
+        if
+            intToBool condVal
+        then
+            evalStmtBlock
+                (whileStmts w)
+                GameState {
+                    currentRoom=(currentRoom state),
+                    scope=(Scope.push (scope state)),
+                    game=(game state),
+                    running=(running state),
+                    rng=newRng
+                }
+        else
+            GameState {
+                currentRoom=(currentRoom state),
+                scope=(scope state),
+                game=(game state),
+                running=(running state),
+                rng=newRng
+            }
+
 evalStmt x y = error "Not implemented"
 
 evalDeclare :: Declare -> Scope -> StdGen -> (Scope, StdGen)

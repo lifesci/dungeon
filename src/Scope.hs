@@ -22,8 +22,9 @@ update (Scope vars (Just parent)) var val = case (Map.lookup var vars) of
 push :: Scope -> Scope
 push x = (Scope Map.empty (Just x))
 
-parent :: Scope -> Maybe Scope
-parent (Scope _ y) = y
+parent :: Scope -> Scope
+parent (Scope x Nothing) = Scope x Nothing
+parent (Scope _ (Just y)) = y
 
 search :: Scope -> String -> Int
 search (Scope vars Nothing) var = case (Map.lookup var vars) of
