@@ -1,6 +1,5 @@
 module Main (main) where
 
-import Lib
 import Parser(parse)
 import Lexer(alexScanTokens)
 import Eval(buildState, GameState)

@@ -1,8 +1,6 @@
-module Eval where
+module Eval (buildState, GameState) where
 
 import Parser
-import Data.Map(Map)
-import qualified Data.Map as Map
 import Scope(Scope)
 import qualified Scope as Scope
 import System.Random(StdGen, randomR)
@@ -16,12 +14,12 @@ data GameState = GameState {
 } deriving Show
 
 buildState :: StdGen -> DgNode -> GameState
-buildState rng dgn = GameState {
+buildState gen dgn = GameState {
     scope=Scope.empty,
     currentRoom="test",
     game=dgn,
     running=True,
-    rng=rng
+    rng=gen
 }
 
 boolToInt :: Bool -> Int
@@ -96,21 +94,21 @@ evalStmt state (WhileNode w) =
                 rng=newRng
             }
 
-evalStmt x y = error "Not implemented"
+evalStmt _ _ = error "Not implemented"
 
 evalDeclare :: Declare -> Scope -> StdGen -> (Scope, StdGen)
-evalDeclare d scope rng =
+evalDeclare d scp gen =
     let
-        (val, newRng) = evalExpr (declareVal d) scope rng
+        (val, newRng) = evalExpr (declareVal d) scp gen
     in
-        (Scope.add scope (declareVar d) val, newRng)
+        (Scope.add scp (declareVar d) val, newRng)
 
 evalAssign :: Assign -> Scope -> StdGen -> (Scope, StdGen)
-evalAssign a scope rng =
+evalAssign a scp gen =
     let
-        (val, newRng) = evalExpr (assignVal a) scope rng
+        (val, newRng) = evalExpr (assignVal a) scp gen
     in
-        (Scope.update scope (assignVar a) val, newRng)
+        (Scope.update scp (assignVar a) val, newRng)
 
 and' :: Int -> Int -> Int
 and' x y = boolToInt ((intToBool x) && intToBool y)
@@ -131,7 +129,7 @@ lte :: Int -> Int -> Int
 lte x y = boolToInt (x <= y)
 
 evalExpr :: ExprNode -> Scope -> StdGen -> (Int, StdGen)
-evalExpr (BinOpNode op x y) scope rng = let
+evalExpr (BinOpNode op x y) scp gen = let
     f = case op of
         Add -> (+)
         Sub -> (-)
@@ -144,21 +142,21 @@ evalExpr (BinOpNode op x y) scope rng = let
         Lt -> lt
         Gte -> gte
         Lte -> lte
-    (lVal, lRng) = evalExpr x scope rng
+    (lVal, lRng) = evalExpr x scp gen
     in
         let
-            (rVal, rRng) = evalExpr y scope lRng
+            (rVal, rRng) = evalExpr y scp lRng
         in
             ((f lVal rVal), rRng)
 
-evalExpr (UnOpNode op x) scope rng =
+evalExpr (UnOpNode op x) scp gen =
     let
-        (val, newRng) = evalExpr x scope rng
+        (val, newRng) = evalExpr x scp gen
     in
         case op of
             Neg -> (-(val), newRng)
             Not -> (boolToInt (not (intToBool (val))), newRng)
-evalExpr (IntNode x) scope rng = (x, rng)
-evalExpr (IdNode id) scope rng = (Scope.search scope id, rng)
-evalExpr (PropNode p) scope rng = (1, rng)
-evalExpr (DiceNode d) scope rng = randomR ((diceCount d), (diceCount d)*(diceSize d)) rng
+evalExpr (IntNode x) scp gen = (x, gen)
+evalExpr (IdNode idn) scp gen = (Scope.search scp idn, gen)
+evalExpr (PropNode p) scp gen = (1, gen)
+evalExpr (DiceNode d) scp gen = randomR ((diceCount d), (diceCount d)*(diceSize d)) gen
