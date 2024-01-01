@@ -213,14 +213,18 @@ Stmt
     | If { $1 }
 
 If
-    : if '(' Expr ')' '{' StmtList '}' ElseIfList Else { IfNode If { ifCond=$3, ifStmts=(rev $6), elseIfs=(rev $8), elseStmts=(rev $9) } }
+    : if '(' Expr ')' '{' StmtList '}' ElseIfList Else {
+        IfNode If {
+            ifConds=((($3, $6):(rev $8))++[(IntNode 1, $9)])
+        }
+    }
 
 ElseIfList
     : {- empty -} { [] }
     | ElseIfList ElseIf { $2 : $1 }
 
 ElseIf
-    : else if '(' Expr ')' '{' StmtList '}' { ElseIf { elseIfCond=$4, elseIfStmts=(rev $7) } }
+    : else if '(' Expr ')' '{' StmtList '}' { ($4, rev $7) }
 
 Else
     : else '{' StmtList '}' { rev $3 }
@@ -374,10 +378,7 @@ data While = While {
 } deriving Show
 
 data If = If {
-    ifCond :: ExprNode,
-    ifStmts :: [StmtNode],
-    elseIfs :: [ElseIf],
-    elseStmts :: [StmtNode]
+    ifConds :: [(ExprNode, [StmtNode])]
 } deriving Show
 
 data ElseIf = ElseIf {

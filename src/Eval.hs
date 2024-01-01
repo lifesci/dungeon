@@ -76,15 +76,19 @@ evalStmt state (WhileNode w) =
         if
             intToBool condVal
         then
-            evalStmtBlock
-                (whileStmts w)
-                GameState {
-                    currentRoom=(currentRoom state),
-                    scope=(Scope.push (scope state)),
-                    game=(game state),
-                    running=(running state),
-                    rng=newRng
-                }
+            evalStmt
+                (
+                    evalStmtBlock
+                        (whileStmts w)
+                        GameState {
+                            currentRoom=(currentRoom state),
+                            scope=(Scope.push (scope state)),
+                            game=(game state),
+                            running=(running state),
+                            rng=newRng
+                        }
+                )
+                (WhileNode w)
         else
             GameState {
                 currentRoom=(currentRoom state),
@@ -93,8 +97,33 @@ evalStmt state (WhileNode w) =
                 running=(running state),
                 rng=newRng
             }
-
+evalStmt state (IfNode i) = evalIf (ifConds i) state
 evalStmt _ _ = error "Not implemented"
+
+evalIf :: [(ExprNode, [StmtNode])] -> GameState -> GameState
+evalIf [] state = state
+evalIf ((expr, stmts):xs) state =
+    let
+        (condVal, newGen) = evalExpr expr (scope state) (rng state)
+    in
+        if
+            intToBool condVal
+        then
+            evalStmtBlock stmts GameState {
+                currentRoom=(currentRoom state),
+                scope=(Scope.push (scope state)),
+                game=(game state),
+                running=(running state),
+                rng=newGen
+            }
+        else
+            evalIf xs GameState {
+                currentRoom=(currentRoom state),
+                scope=(scope state),
+                game=(game state),
+                running=(running state),
+                rng=newGen
+            }
 
 evalDeclare :: Declare -> Scope -> StdGen -> (Scope, StdGen)
 evalDeclare d scp gen =

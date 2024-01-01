@@ -25,6 +25,14 @@ item test_item<weapon>() {
     action attack targets (entity) {
         let dmg = 5;
         target.hp = target.hp - dmg;
+        if(1) {
+            dmg = 6;
+        } else if (2) {
+            dmg = 7;
+            dmg = 8;
+        } else {
+            dmg = 9;
+        }
         take();
     }
 }
