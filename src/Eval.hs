@@ -1,26 +1,11 @@
-module Eval (buildState, GameState) where
+module Eval where
 
 import Parser
 import Scope(Scope)
 import qualified Scope as Scope
+import DgState(DgState)
+import qualified DgState as DgState
 import System.Random(StdGen, randomR)
-
-data GameState = GameState {
-    currentRoom :: String,
-    scope :: Scope,
-    game :: DgNode,
-    running :: Bool,
-    rng :: StdGen
-} deriving Show
-
-buildState :: StdGen -> DgNode -> GameState
-buildState gen dgn = GameState {
-    scope=Scope.empty,
-    currentRoom="test",
-    game=dgn,
-    running=True,
-    rng=gen
-}
 
 boolToInt :: Bool -> Int
 boolToInt x = if x then 1 else 0
@@ -28,50 +13,30 @@ boolToInt x = if x then 1 else 0
 intToBool :: Int -> Bool
 intToBool x = x /= 0
 
-
-
-evalStmtBlock :: [StmtNode] -> GameState -> GameState
-evalStmtBlock [] state = GameState {
-    currentRoom=(currentRoom state),
-    scope=(Scope.parent (scope state)),
-    game=(game state),
-    running=(running state),
-    rng=(rng state)
-}
+evalStmtBlock :: [StmtNode] -> DgState -> DgState
+evalStmtBlock [] state = DgState.leaveScope state
 evalStmtBlock (x:xs) state =
     if
-        (running state)
+        (DgState.running state)
     then
         evalStmtBlock xs (evalStmt state x)
     else
         state
 
-evalStmt :: GameState -> StmtNode -> GameState
+evalStmt :: DgState -> StmtNode -> DgState
 evalStmt state (DeclareNode d) =
     let
-        (newScope, newRng) = evalDeclare d (scope state) (rng state)
+        (newScope, newGen) = evalDeclare d (DgState.scope state) (DgState.rng state)
     in
-        GameState {
-            currentRoom=(currentRoom state),
-            scope=(newScope),
-            game=(game state),
-            running=(running state),
-            rng=newRng
-        }
+        DgState.updateScopeAndGen newScope newGen state
 evalStmt state (AssignNode a) =
     let
-        (newScope, newRng) = evalAssign a (scope state) (rng state)
+        (newScope, newGen) = evalAssign a (DgState.scope state) (DgState.rng state)
     in
-        GameState {
-            currentRoom=(currentRoom state),
-            scope=newScope,
-            game=(game state),
-            running=(running state),
-            rng=newRng
-        }
+        DgState.updateScopeAndGen newScope newGen state
 evalStmt state (WhileNode w) =
     let
-        (condVal, newRng) = evalExpr (whileCond w) (scope state) (rng state)
+        (condVal, newGen) = evalExpr (whileCond w) (DgState.scope state) (DgState.rng state)
     in
         if
             intToBool condVal
@@ -80,50 +45,26 @@ evalStmt state (WhileNode w) =
                 (
                     evalStmtBlock
                         (whileStmts w)
-                        GameState {
-                            currentRoom=(currentRoom state),
-                            scope=(Scope.push (scope state)),
-                            game=(game state),
-                            running=(running state),
-                            rng=newRng
-                        }
+                        (DgState.enterScope newGen state)
                 )
                 (WhileNode w)
         else
-            GameState {
-                currentRoom=(currentRoom state),
-                scope=(scope state),
-                game=(game state),
-                running=(running state),
-                rng=newRng
-            }
+            DgState.updateGen newGen state
 evalStmt state (IfNode i) = evalIf (ifConds i) state
 evalStmt _ _ = error "Not implemented"
 
-evalIf :: [(ExprNode, [StmtNode])] -> GameState -> GameState
+evalIf :: [(ExprNode, [StmtNode])] -> DgState -> DgState
 evalIf [] state = state
 evalIf ((expr, stmts):xs) state =
     let
-        (condVal, newGen) = evalExpr expr (scope state) (rng state)
+        (condVal, newGen) = evalExpr expr (DgState.scope state) (DgState.rng state)
     in
         if
             intToBool condVal
         then
-            evalStmtBlock stmts GameState {
-                currentRoom=(currentRoom state),
-                scope=(Scope.push (scope state)),
-                game=(game state),
-                running=(running state),
-                rng=newGen
-            }
+            evalStmtBlock stmts (DgState.enterScope newGen state)
         else
-            evalIf xs GameState {
-                currentRoom=(currentRoom state),
-                scope=(scope state),
-                game=(game state),
-                running=(running state),
-                rng=newGen
-            }
+            evalIf xs (DgState.updateGen newGen state)
 
 evalDeclare :: Declare -> Scope -> StdGen -> (Scope, StdGen)
 evalDeclare d scp gen =

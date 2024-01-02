@@ -2,7 +2,7 @@ module Main (main) where
 
 import Parser(parse)
 import Lexer(alexScanTokens)
-import Eval(buildState, GameState)
+import DgState(DgState, buildState)
 import System.Random(newStdGen)
 
 main :: IO ()
@@ -13,6 +13,6 @@ main = do
     s <- readFile fileName
     run (buildState gen (parse (alexScanTokens s)))
 
-run :: GameState -> IO ()
+run :: DgState -> IO ()
 run state = do
     print state
