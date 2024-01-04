@@ -76,7 +76,8 @@ Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
             entityArgs=Map.empty,
             entityStats=(getEntityStats $2 $3),
             entityActions=(entityTemplateActions $3),
-            entityTriggers=(entityTemplateTriggers $3)
+            entityTriggers=(entityTemplateTriggers $3),
+            entityItems=Map.empty
         }),
         dgEnemies=(rev $4),
         dgItems=(listToMap (rev $5) itemTemplateName id),
@@ -442,7 +443,8 @@ data Entity = Entity {
     entityArgs :: Map String ExprNode,
     entityStats :: Map String Int,
     entityActions :: Map String ActionNode,
-    entityTriggers :: Map String TriggerNode
+    entityTriggers :: Map String TriggerNode,
+    entityItems :: Map String Item
 } deriving Show
 
 data Item = Item {
@@ -521,7 +523,8 @@ entityFromTemplate ets sb rte =
             ),
             entityStats=(getEntityStats sb template),
             entityActions=(entityTemplateActions template),
-            entityTriggers=(entityTemplateTriggers template)
+            entityTriggers=(entityTemplateTriggers template),
+            entityItems=Map.empty
         }
 
 getEntityStats :: StatblockNode -> EntityTemplateNode -> Map String Int
