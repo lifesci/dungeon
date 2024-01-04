@@ -51,7 +51,12 @@ evalStmt state (WhileNode w) =
         else
             DgState.updateGen newGen state
 evalStmt state (IfNode i) = evalIf (ifConds i) state
+evalStmt state (FuncNode f) = evalFunc f state
 evalStmt _ _ = error "Not implemented"
+
+evalFunc :: Func -> DgState -> DgState
+evalFunc Func{funcName="quit"} state = DgState.setRunning False state
+evalFunc _ _ = error "Unknown function"
 
 evalIf :: [(ExprNode, [StmtNode])] -> DgState -> DgState
 evalIf [] state = state

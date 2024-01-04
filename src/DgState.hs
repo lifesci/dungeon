@@ -58,3 +58,12 @@ leaveScope state = DgState {
     rng=(rng state)
 }
 
+setRunning :: Bool -> DgState -> DgState
+setRunning newRunning state = DgState {
+    currentRoom=(currentRoom state),
+    scope=(scope state),
+    game=(game state),
+    running=newRunning,
+    rng=(rng state)
+}
+

@@ -61,6 +61,7 @@ tokens :-
     "requires" { \_ -> TRequires }
     "room" { \_ -> TRoom }
     "game" { \_ -> TGame }
+    "alive" { \_ -> TAlive }
 
     @int { \s -> TInt (read s) }
     @id { \s -> TId s }
@@ -121,6 +122,7 @@ data Token
     | TRequires
     | TRoom
     | TGame
+    | TAlive
 
     deriving (Eq, Show)
 

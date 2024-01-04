@@ -63,6 +63,7 @@ import qualified Data.Set as Set
     requires { TRequires }
     room { TRoom }
     game { TGame }
+    alive { TAlive }
 %%
 
 Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
@@ -75,6 +76,7 @@ Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
             entityName=(entityTemplateName $3),
             entityArgs=Map.empty,
             entityStats=(getEntityStats $2 $3),
+            entityAlive=(entityTemplateAlive $3),
             entityActions=(entityTemplateActions $3),
             entityTriggers=(entityTemplateTriggers $3),
             entityItems=Map.empty
@@ -95,15 +97,18 @@ StatList
 
 Stat: id '=' int ';' { StatNode { statName=$1, statVal=$3 } }
 
+Alive: alive '=' Expr ';' { $3 }
+
 Player
-    : player id '{' stats '{' StatList '}' ActionList TriggerList '}' {
+    : player id '{' stats '{' StatList '}' Alive ActionList TriggerList '}' {
         EntityTemplateNode {
             entityTemplateType=Player,
             entityTemplateName=$2,
             entityTemplateArgs=[],
             entityTemplateStats=(listToMap (rev $6) statName statVal),
-            entityTemplateActions=(listToMap (rev $8) actionName id),
-            entityTemplateTriggers=(listToMap (rev $9) triggerName id)
+            entityTemplateAlive=$8,
+            entityTemplateActions=(listToMap (rev $9) actionName id),
+            entityTemplateTriggers=(listToMap (rev $10) triggerName id)
         }
     }
 
@@ -112,14 +117,15 @@ EnemyList
     | EnemyList Enemy { $2 : $1 }
 
 Enemy
-    : enemy id '(' IdList ')' '{' stats '{' StatList '}' ActionList TriggerList '}' {
+    : enemy id '(' IdList ')' '{' stats '{' StatList '}' Alive ActionList TriggerList '}' {
         EntityTemplateNode {
             entityTemplateType=Enemy,
             entityTemplateName=$2,
             entityTemplateArgs=(rev $4),
             entityTemplateStats=(listToMap (rev $9) statName statVal),
-            entityTemplateActions=(listToMap (rev $11) actionName id),
-            entityTemplateTriggers=(listToMap (rev $12) triggerName id)
+            entityTemplateAlive=$11,
+            entityTemplateActions=(listToMap (rev $12) actionName id),
+            entityTemplateTriggers=(listToMap (rev $13) triggerName id)
         }
     }
 
@@ -305,6 +311,7 @@ data EntityTemplateNode = EntityTemplateNode {
     entityTemplateName :: String,
     entityTemplateArgs :: [String],
     entityTemplateStats :: Map String Int,
+    entityTemplateAlive :: ExprNode,
     entityTemplateActions :: Map String ActionNode,
     entityTemplateTriggers :: Map String TriggerNode
 } deriving Show
@@ -442,6 +449,7 @@ data Entity = Entity {
     entityName :: String,
     entityArgs :: Map String ExprNode,
     entityStats :: Map String Int,
+    entityAlive :: ExprNode,
     entityActions :: Map String ActionNode,
     entityTriggers :: Map String TriggerNode,
     entityItems :: Map String Item
@@ -522,6 +530,7 @@ entityFromTemplate ets sb rte =
                 )
             ),
             entityStats=(getEntityStats sb template),
+            entityAlive=(entityTemplateAlive template),
             entityActions=(entityTemplateActions template),
             entityTriggers=(entityTemplateTriggers template),
             entityItems=Map.empty

@@ -9,6 +9,7 @@ player me {
     stats {
         hp = 1;
     }
+    alive = 1;
     action test_action targets (a or b) {}
     trigger test_trigger on (c or not d) {}
 }
@@ -17,6 +18,7 @@ enemy test_enemy() {
     stats {
         mp = 1;
     }
+    alive = 1;
     action test_action targets (a or b) {}
     trigger test_trigger on (c or not d) {}
 }
