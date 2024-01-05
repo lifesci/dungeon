@@ -125,7 +125,7 @@ evalExpr (UnOpNode op x) state =
             Not -> (boolToInt (not (intToBool (val))), newState)
 evalExpr (IntNode x) state = (x, state)
 evalExpr (IdNode idn) state = (Scope.search (DgState.scope state) idn, state)
-evalExpr (PropNode p) state = (1, state)
+evalExpr (PropNode p) state = (DgState.getPropVal p state, state)
 evalExpr (DiceNode d) state =
     let
         (val, newGen) = randomR ((diceCount d), (diceCount d)*(diceSize d)) (DgState.rng state)
