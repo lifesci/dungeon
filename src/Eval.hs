@@ -42,9 +42,11 @@ evalStmt state (WhileNode w) =
                 (WhileNode w)
         else
             newState
+evalStmt state (AssignPropNode ap) =
+    let (val, newState) = evalExpr (assignPropVal ap) state in
+        DgState.updateProp (assignPropProp ap) val newState
 evalStmt state (IfNode i) = evalIf (ifConds i) state
 evalStmt state (FuncNode f) = evalFunc f state
-evalStmt _ _ = error "Not implemented"
 
 evalFunc :: Func -> DgState -> DgState
 evalFunc Func{funcName="quit"} state = DgState.setRunning False state
