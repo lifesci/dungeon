@@ -24,19 +24,11 @@ evalStmtBlock (x:xs) state =
         state
 
 evalStmt :: DgState -> StmtNode -> DgState
-evalStmt state (DeclareNode d) =
-    let
-        (newScope, newGen) = evalDeclare d (DgState.scope state) (DgState.rng state)
-    in
-        DgState.updateScopeAndGen newScope newGen state
-evalStmt state (AssignNode a) =
-    let
-        (newScope, newGen) = evalAssign a (DgState.scope state) (DgState.rng state)
-    in
-        DgState.updateScopeAndGen newScope newGen state
+evalStmt state (DeclareNode d) = evalDeclare d state
+evalStmt state (AssignNode a) = evalAssign a state
 evalStmt state (WhileNode w) =
     let
-        (condVal, newGen) = evalExpr (whileCond w) (DgState.scope state) (DgState.rng state)
+        (condVal, newState) = evalExpr (whileCond w) state
     in
         if
             intToBool condVal
@@ -45,11 +37,11 @@ evalStmt state (WhileNode w) =
                 (
                     evalStmtBlock
                         (whileStmts w)
-                        (DgState.enterScope newGen state)
+                        (DgState.enterScope newState)
                 )
                 (WhileNode w)
         else
-            DgState.updateGen newGen state
+            newState
 evalStmt state (IfNode i) = evalIf (ifConds i) state
 evalStmt state (FuncNode f) = evalFunc f state
 evalStmt _ _ = error "Not implemented"
@@ -62,28 +54,28 @@ evalIf :: [(ExprNode, [StmtNode])] -> DgState -> DgState
 evalIf [] state = state
 evalIf ((expr, stmts):xs) state =
     let
-        (condVal, newGen) = evalExpr expr (DgState.scope state) (DgState.rng state)
+        (condVal, newState) = evalExpr expr state
     in
         if
             intToBool condVal
         then
-            evalStmtBlock stmts (DgState.enterScope newGen state)
+            evalStmtBlock stmts (DgState.enterScope newState)
         else
-            evalIf xs (DgState.updateGen newGen state)
+            evalIf xs newState
 
-evalDeclare :: Declare -> Scope -> StdGen -> (Scope, StdGen)
-evalDeclare d scp gen =
+evalDeclare :: Declare -> DgState -> DgState
+evalDeclare d state =
     let
-        (val, newRng) = evalExpr (declareVal d) scp gen
+        (val, newState) = evalExpr (declareVal d) state
     in
-        (Scope.add scp (declareVar d) val, newRng)
+        DgState.updateScope (Scope.add (DgState.scope newState) (declareVar d) val) newState
 
-evalAssign :: Assign -> Scope -> StdGen -> (Scope, StdGen)
-evalAssign a scp gen =
+evalAssign :: Assign -> DgState -> DgState
+evalAssign a state =
     let
-        (val, newRng) = evalExpr (assignVal a) scp gen
+        (val, newState) = evalExpr (assignVal a) state
     in
-        (Scope.update scp (assignVar a) val, newRng)
+        DgState.updateScope (Scope.update (DgState.scope newState) (assignVar a) val) newState
 
 and' :: Int -> Int -> Int
 and' x y = boolToInt ((intToBool x) && intToBool y)
@@ -103,8 +95,8 @@ gte x y = boolToInt (x >= y)
 lte :: Int -> Int -> Int
 lte x y = boolToInt (x <= y)
 
-evalExpr :: ExprNode -> Scope -> StdGen -> (Int, StdGen)
-evalExpr (BinOpNode op x y) scp gen = let
+evalExpr :: ExprNode -> DgState -> (Int, DgState)
+evalExpr (BinOpNode op x y) state = let
     f = case op of
         Add -> (+)
         Sub -> (-)
@@ -117,21 +109,25 @@ evalExpr (BinOpNode op x y) scp gen = let
         Lt -> lt
         Gte -> gte
         Lte -> lte
-    (lVal, lRng) = evalExpr x scp gen
+    (lVal, lState) = evalExpr x state
     in
         let
-            (rVal, rRng) = evalExpr y scp lRng
+            (rVal, rState) = evalExpr y lState
         in
-            ((f lVal rVal), rRng)
+            ((f lVal rVal), rState)
 
-evalExpr (UnOpNode op x) scp gen =
+evalExpr (UnOpNode op x) state =
     let
-        (val, newRng) = evalExpr x scp gen
+        (val, newState) = evalExpr x state
     in
         case op of
-            Neg -> (-(val), newRng)
-            Not -> (boolToInt (not (intToBool (val))), newRng)
-evalExpr (IntNode x) scp gen = (x, gen)
-evalExpr (IdNode idn) scp gen = (Scope.search scp idn, gen)
-evalExpr (PropNode p) scp gen = (1, gen)
-evalExpr (DiceNode d) scp gen = randomR ((diceCount d), (diceCount d)*(diceSize d)) gen
+            Neg -> (-(val), newState)
+            Not -> (boolToInt (not (intToBool (val))), newState)
+evalExpr (IntNode x) state = (x, state)
+evalExpr (IdNode idn) state = (Scope.search (DgState.scope state) idn, state)
+evalExpr (PropNode p) state = (1, state)
+evalExpr (DiceNode d) state =
+    let
+        (val, newGen) = randomR ((diceCount d), (diceCount d)*(diceSize d)) (DgState.rng state)
+    in
+        (val, DgState.updateGen newGen state)

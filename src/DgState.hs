@@ -45,14 +45,24 @@ updateScopeAndGen scp gen state = DgState {
     rng=gen
 }
 
-enterScope :: StdGen -> DgState -> DgState
-enterScope gen state = DgState {
+updateScope :: Scope -> DgState -> DgState
+updateScope scp state = DgState {
+    currentRoom=(currentRoom state),
+    scope=scp,
+    player=(player state),
+    rooms=(rooms state),
+    running=(running state),
+    rng=(rng state)
+}
+
+enterScope :: DgState -> DgState
+enterScope state = DgState {
     currentRoom=(currentRoom state),
     scope=(Scope.push (scope state)),
     player=(player state),
     rooms=(rooms state),
     running=(running state),
-    rng=gen
+    rng=(rng state)
 }
 
 leaveScope :: DgState -> DgState
