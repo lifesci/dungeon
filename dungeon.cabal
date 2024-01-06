@@ -32,12 +32,29 @@ library
       Parser
       Scope
       DgState
+
+      Action
+      Assign
+      AssignStat
+      Declare
+      Dice
+      Door
+      Dungeon
+      EntityTemplate
+      Expr
+      Func
+      ItemTemplate
+      RoomTemplate
+      Stat
+      Stmt
+      Trigger
   other-modules:
       Paths_dungeon
   autogen-modules:
       Paths_dungeon
   hs-source-dirs:
       src
+      src/nodes
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-tools:
       alex

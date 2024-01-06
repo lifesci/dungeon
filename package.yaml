@@ -39,7 +39,9 @@ ghc-options:
 - -Wredundant-constraints
 
 library:
-  source-dirs: src
+  source-dirs:
+  - src
+  - src/nodes
   build-tools:
   - happy
   - alex
