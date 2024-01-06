@@ -1,4 +1,4 @@
-module Stat where 
+module Stat(Stat(..)) where 
 
 data Stat = Stat {
     owner :: String,

@@ -1,4 +1,4 @@
-module RoomTemplateEntity where
+module RoomTemplateEntity(RoomTemplateEntity(..)) where
 
 import Expr(Expr)
 

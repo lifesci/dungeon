@@ -1,6 +1,5 @@
-module RoomTemplate where
+module RoomTemplate(RoomTemplate(..)) where
 
-import Expr(Expr)
 import RoomTemplateEntity(RoomTemplateEntity)
 import RoomTemplateItem(RoomTemplateItem)
 import Door(Door)

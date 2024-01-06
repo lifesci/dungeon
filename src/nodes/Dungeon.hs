@@ -1,4 +1,6 @@
-module Dungeon where
+module Dungeon(
+    Dungeon (..)
+) where
 
 import Data.Map(Map)
 import EntityTemplate(EntityTemplate)
@@ -13,3 +15,4 @@ data Dungeon = Dungeon {
     itemTemplates :: Map String ItemTemplate,
     rooms :: Map String RoomTemplate
 } deriving Show
+

@@ -1,4 +1,4 @@
-module Door where
+module Door(Door(..)) where
 
 import Expr(Expr)
 

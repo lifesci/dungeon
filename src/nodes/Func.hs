@@ -1,4 +1,4 @@
-module Func where
+module Func(Func(..)) where
 
 import Expr(Expr)
 

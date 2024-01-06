@@ -1,4 +1,4 @@
-module Dice where
+module Dice(Dice(..)) where
 
 data Dice = Dice {
     count :: Int,

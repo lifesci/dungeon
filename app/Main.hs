@@ -12,7 +12,8 @@ main = do
     print "Enter file name"
     fileName <- getLine
     s <- readFile fileName
-    run (DgState.buildState gen (parse (alexScanTokens s)))
+    print (parse (alexScanTokens s))
+    -- run (DgState.buildState gen (parse (alexScanTokens s)))
 
 run :: DgState -> IO ()
 run state = do

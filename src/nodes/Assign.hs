@@ -1,4 +1,4 @@
-module Assign where
+module Assign(Assign(..)) where
 
 import Expr(Expr)
 

@@ -1,4 +1,4 @@
-module EntityTemplate where
+module EntityTemplate(EntityTemplate(..), EntityType(..)) where
 
 import Data.Map(Map)
 import Expr(Expr)
@@ -10,7 +10,7 @@ data EntityType = Player | Enemy deriving Show
 data EntityTemplate = EntityTemplate {
     eType :: EntityType,
     name :: String,
-    args :: String,
+    args :: [String],
     stats :: Map String Int,
     alive :: Expr,
     actions :: Map String Action,

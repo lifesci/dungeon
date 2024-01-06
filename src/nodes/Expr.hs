@@ -1,4 +1,4 @@
-module Expr where
+module Expr(Expr(..), BinOp(..), UnOp(..)) where
 
 import Dice(Dice)
 import Stat(Stat)

@@ -1,7 +1,22 @@
-module DgState where
+module DgState (
+    DgState(..),
+    buildState,
+    toString,
+    updateGen,
+    updateScopeAndGen,
+    updateScope,
+    enterScope,
+    leaveScope,
+    setRunning,
+    getPropVal,
+    updateProp
+) where
 
-import Parser
 import Scope(Scope)
+import qualified Stat
+import qualified Dungeon
+import qualified Entity
+import qualified Room
 import qualified Scope as Scope
 import System.Random(StdGen)
 import Data.Map(Map)
@@ -12,8 +27,8 @@ data DgState = DgState {
     scope :: Scope,
     source :: Maybe String,
     target :: Maybe String,
-    player :: Entity,
-    rooms :: Map String Room,
+    player :: Entity.Entity,
+    rooms :: Map String Room.Room,
     running :: Bool,
     rng :: StdGen
 } deriving Show
@@ -23,14 +38,14 @@ toString state =
     (currentRoom state) ++ "\n"
     ++ ""
 
-buildState :: StdGen -> DgNode -> DgState
+buildState :: StdGen -> Dungeon.Dungeon -> DgState
 buildState gen dgn = DgState {
-    currentRoom="test",
+    currentRoom="start",
     scope=Scope.empty,
     source=Nothing,
     target=Nothing,
-    player=(dgPlayer dgn),
-    rooms=(dgRooms dgn),
+    player=Entity.Entity {}, -- TODO
+    rooms=Map.empty, -- TODO
     running=True,
     rng=gen
 }
@@ -107,22 +122,22 @@ setRunning newRunning state = DgState {
     rng=(rng state)
 }
 
-getCurrentRoom :: DgState -> Room
+getCurrentRoom :: DgState -> Room.Room
 getCurrentRoom state = case Map.lookup (currentRoom state) (rooms state) of
     Nothing -> error "Unable to locate current room"
     (Just x) -> x
 
-getCurrentRoomEntity :: String -> DgState -> Entity
+getCurrentRoomEntity :: String -> DgState -> Entity.Entity
 getCurrentRoomEntity name state =
     let
         room = getCurrentRoom state
     in
-        case (Map.lookup name (roomEntities room)) of
+        case (Map.lookup name (Room.entities room)) of
             Nothing -> error "Unable to locate entity in current room"
             (Just x) -> x
 
-getPropFromEntity :: Entity -> String -> Int
-getPropFromEntity entity prop = case Map.lookup prop (entityStats entity) of
+getPropFromEntity :: Entity.Entity -> String -> Int
+getPropFromEntity entity prop = case Map.lookup prop (Entity.stats entity) of
     Nothing -> error "Unable to locate entity prop"
     (Just x) -> x
 
@@ -131,9 +146,9 @@ getPropFromOwner Nothing _ _ = error "Property owner is undefined"
 getPropFromOwner (Just "player") name state = getPropFromEntity (player state) name
 getPropFromOwner (Just enemy) name state = getPropFromEntity (getCurrentRoomEntity enemy state) name
 
-getPropVal :: Prop -> DgState -> Int
-getPropVal Prop{propVar="source", propName=name} state = getPropFromOwner (source state) name state
-getPropVal Prop{propVar="target", propName=name} state = getPropFromOwner (target state) name state
+getPropVal :: Stat.Stat -> DgState -> Int
+getPropVal Stat.Stat{Stat.owner="source", Stat.name=name} state = getPropFromOwner (source state) name state
+getPropVal Stat.Stat{Stat.owner="target", Stat.name=name} state = getPropFromOwner (target state) name state
 getPropVal _ _ = error "Invalid property owner in update"
 
 updateEntityProp :: Maybe String -> String -> Int -> DgState -> DgState
@@ -145,15 +160,15 @@ updateEntityProp (Just "player") name val state =
             scope=(scope state),
             source=(source state),
             target=(target state),
-            player=Entity {
-                entityType=(entityType p),
-                entityName=(entityName p),
-                entityArgs=(entityArgs p),
-                entityStats=(Map.insert name val (entityStats p)),
-                entityAlive=(entityAlive p),
-                entityActions=(entityActions p),
-                entityTriggers=(entityTriggers p),
-                entityItems=(entityItems p)
+            player=Entity.Entity {
+                Entity.eType=(Entity.eType p),
+                Entity.name=(Entity.name p),
+                Entity.args=(Entity.args p),
+                Entity.stats=(Map.insert name val (Entity.stats p)),
+                Entity.alive=(Entity.alive p),
+                Entity.actions=(Entity.actions p),
+                Entity.triggers=(Entity.triggers p),
+                Entity.items=(Entity.items p)
             },
             rooms=(rooms state),
             running=(running state),
@@ -173,36 +188,36 @@ updateEntityProp (Just enemy) name val state =
             rooms=(
                 Map.insert
                     (currentRoom state)
-                    Room {
-                        roomName=(roomName curRoom),
-                        roomEntities=(
+                    Room.Room {
+                        Room.name=(Room.name curRoom),
+                        Room.entities=(
                             Map.insert
                                 enemy
-                                Entity {
-                                    entityType=(entityType entity),
-                                    entityName=(entityName entity),
-                                    entityArgs=(entityArgs entity),
-                                    entityStats=(
+                                Entity.Entity {
+                                    Entity.eType=(Entity.eType entity),
+                                    Entity.name=(Entity.name entity),
+                                    Entity.args=(Entity.args entity),
+                                    Entity.stats=(
                                         Map.insert
                                             name
                                             val
-                                            (entityStats entity)),
-                                    entityAlive=(entityAlive entity),
-                                    entityActions=(entityActions entity),
-                                    entityTriggers=(entityTriggers entity),
-                                    entityItems=(entityItems entity)
+                                            (Entity.stats entity)),
+                                    Entity.alive=(Entity.alive entity),
+                                    Entity.actions=(Entity.actions entity),
+                                    Entity.triggers=(Entity.triggers entity),
+                                    Entity.items=(Entity.items entity)
                                 }
-                                (roomEntities curRoom)),
-                        roomItems=(roomItems curRoom),
-                        roomDoors=(roomDoors curRoom)
+                                (Room.entities curRoom)),
+                        Room.items=(Room.items curRoom),
+                        Room.doors=(Room.doors curRoom)
                     }
                     (rooms state)),
             running=(running state),
             rng=(rng state)
         }
 
-updateProp :: Prop -> Int -> DgState -> DgState
-updateProp Prop{propVar="source", propName=name} val state = updateEntityProp (source state) name val state
-updateProp Prop{propVar="target", propName=name} val state = updateEntityProp (target state) name val state
+updateProp :: Stat.Stat -> Int -> DgState -> DgState
+updateProp Stat.Stat{Stat.owner="source", Stat.name=name} val state = updateEntityProp (source state) name val state
+updateProp Stat.Stat{Stat.owner="target", Stat.name=name} val state = updateEntityProp (target state) name val state
 updateProp _ _ _ = error "Invalid property owner in assign"
 

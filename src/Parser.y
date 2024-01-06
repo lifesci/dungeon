@@ -6,8 +6,25 @@ import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
 import qualified Data.Set as Set
-import Expr(Expr)
-import qualified Expr as Expr
+import qualified Dungeon
+import qualified EntityTemplate
+import qualified ItemTemplate
+import qualified RoomTemplate
+import qualified RoomTemplateEntity
+import qualified RoomTemplateItem
+import qualified Door
+import qualified Action
+import qualified Trigger
+import qualified Declare
+import qualified Assign
+import qualified AssignStat
+import qualified Func
+import qualified If
+import qualified While
+import qualified Stmt
+import qualified Expr
+import qualified Dice
+import qualified Stat
 }
 
 %name parse
@@ -66,51 +83,42 @@ import qualified Expr as Expr
     room { TRoom }
     game { TGame }
     alive { TAlive }
+-- Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
 %%
 
 Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
-    DgNode {
-        dgGame=$1,
-        dgStatblock=(stats $2),
-        dgPlayerTemplate=$3,
-        dgPlayer=(Entity {
-            entityType=(entityTemplateType $3),
-            entityName=(entityTemplateName $3),
-            entityArgs=Map.empty,
-            entityStats=(getEntityStats $2 $3),
-            entityAlive=(entityTemplateAlive $3),
-            entityActions=(entityTemplateActions $3),
-            entityTriggers=(entityTemplateTriggers $3),
-            entityItems=Map.empty
-        }),
-        dgEnemies=(rev $4),
-        dgItems=(listToMap (rev $5) itemTemplateName id),
-        dgRooms=(listToMap (map (populateRoom (rev $4) (rev $5) $2) (rev $6)) roomName id)
+    Dungeon.Dungeon {
+        Dungeon.name=$1,
+        Dungeon.statblock=$2,
+        Dungeon.playerTemplate=$3,
+        Dungeon.enemyTemplates=Map.empty, -- TODO
+        Dungeon.itemTemplates=Map.empty, -- TODO
+        Dungeon.rooms=Map.empty -- TODO
     }
 }
 
-GameName: game id ';' { GameNode $2 }
+GameName: game id ';' { $2 }
 
-Statblock: statblock '{' StatList '}' { StatblockNode { stats=(listToMap (rev $3) statName statVal) } }
+Statblock: statblock '{' StatList '}' { Map.fromList (rev $3) }
 
 StatList
     : {- empty -} { []}
     | StatList Stat { $2 : $1 }
 
-Stat: id '=' int ';' { StatNode { statName=$1, statVal=$3 } }
+Stat: id '=' int ';' { ($1, $3) }
 
 Alive: alive '=' Expr ';' { $3 }
 
 Player
     : player id '{' stats '{' StatList '}' Alive ActionList TriggerList '}' {
-        EntityTemplateNode {
-            entityTemplateType=Player,
-            entityTemplateName=$2,
-            entityTemplateArgs=[],
-            entityTemplateStats=(listToMap (rev $6) statName statVal),
-            entityTemplateAlive=$8,
-            entityTemplateActions=(listToMap (rev $9) actionName id),
-            entityTemplateTriggers=(listToMap (rev $10) triggerName id)
+        EntityTemplate.EntityTemplate {
+            EntityTemplate.eType = EntityTemplate.Player,
+            EntityTemplate.name=$2,
+            EntityTemplate.args=[],
+            EntityTemplate.stats=(Map.fromList (rev $6)),
+            EntityTemplate.alive=$8,
+            EntityTemplate.actions=Map.empty, -- TODO
+            EntityTemplate.triggers=Map.empty -- TODO
         }
     }
 
@@ -120,14 +128,14 @@ EnemyList
 
 Enemy
     : enemy id '(' IdList ')' '{' stats '{' StatList '}' Alive ActionList TriggerList '}' {
-        EntityTemplateNode {
-            entityTemplateType=Enemy,
-            entityTemplateName=$2,
-            entityTemplateArgs=(rev $4),
-            entityTemplateStats=(listToMap (rev $9) statName statVal),
-            entityTemplateAlive=$11,
-            entityTemplateActions=(listToMap (rev $12) actionName id),
-            entityTemplateTriggers=(listToMap (rev $13) triggerName id)
+        EntityTemplate.EntityTemplate {
+            EntityTemplate.eType = EntityTemplate.Enemy,
+            EntityTemplate.name=$2,
+            EntityTemplate.args=(rev $4),
+            EntityTemplate.stats=(Map.fromList (rev $9)),
+            EntityTemplate.alive=$11,
+            EntityTemplate.actions=Map.empty, -- TODO
+            EntityTemplate.triggers=Map.empty -- TODO
         }
     }
 
@@ -136,18 +144,25 @@ ItemList
     | ItemList Item { $2 : $1 }
 
 Item
-    : item id '<' IdList '>' '(' IdList ')' '{' ActionList '}' { ItemTemplateNode { itemTemplateName=$2, itemTemplateAttribs=(rev $4), itemTemplateArgs=(rev $7), itemTemplateActions=(listToMap (rev $10) actionName id) } }
+    : item id '<' IdList '>' '(' IdList ')' '{' ActionList '}' {
+        ItemTemplate.ItemTemplate {
+            ItemTemplate.name=$2,
+            ItemTemplate.attribs=(rev $4),
+            ItemTemplate.args=(rev $7),
+            ItemTemplate.actions=Map.empty -- TODO
+        }
+    }
 
 RoomList
     : {- empty -} { [] }
     | RoomList Room { $2 : $1 }
 
 Room: room id '{' RoomEnemies RoomItems Doors '}' {
-    RoomTemplateNode {
-        roomTemplateName=$2,
-        roomTemplateEntities=$4,
-        roomTemplateItems=$5,
-        roomTemplateDoors=$6
+    RoomTemplate.RoomTemplate {
+        RoomTemplate.name=$2,
+        RoomTemplate.entities=$4,
+        RoomTemplate.items=$5,
+        RoomTemplate.doors=$6
     }
 }
 
@@ -158,10 +173,10 @@ RoomEnemyList
     | RoomEnemyList RoomEnemy { $2 : $1 }
 
 RoomEnemy: id '=' id '(' ExprList ')' ';' {
-    RoomTemplateEntity {
-        roomTemplateEntityName=$1,
-        roomTemplateEntityType=$3,
-        roomTemplateEntityArgs=(rev $5)
+    RoomTemplateEntity.RoomTemplateEntity {
+        RoomTemplateEntity.name=$1,
+        RoomTemplateEntity.template=$3,
+        RoomTemplateEntity.args=(rev $5)
     }
 }
 
@@ -172,10 +187,10 @@ RoomItemList
     | RoomItemList RoomItem { $2 : $1 }
 
 RoomItem: id '=' id '(' ExprList ')' ';' {
-    RoomTemplateItem {
-        roomTemplateItemName=$1,
-        roomTemplateItemType=$3,
-        roomTemplateItemArgs=(rev $5)
+    RoomTemplateItem.RoomTemplateItem {
+        RoomTemplateItem.name=$1,
+        RoomTemplateItem.template=$3,
+        RoomTemplateItem.args=(rev $5)
     }
 }
 
@@ -185,10 +200,16 @@ DoorList
     : {- empty -} { [] }
     | DoorList Door { $2 : $1 }
 
-Door: id to id DoorReq ';' { Door { doorName=$1, doorTo=$3, doorReq=$4 } }
+Door: id to id DoorReq ';' {
+    Door.Door {
+        Door.name=$1,
+        Door.to=$3,
+        Door.req=$4
+    }
+}
 
 DoorReq
-    : {- empty -} { IntNode 1 }
+    : {- empty -} { Expr.IntExpr 1 }
     | requires '(' Expr ')' { $3 }
 
 IdList
@@ -207,24 +228,44 @@ TriggerList
     : {- empty -} { [] }
     | TriggerList Trigger { $2 : $1 }
 
-Action
-    : action id targets '(' Expr ')' '{' StmtList '}' { ActionNode { actionName=$2, actionTargets=$5, actionStmts=(rev $8) } }
+Action: action id targets '(' Expr ')' '{' StmtList '}' {
+    Action.Action {
+        Action.name=$2,
+        Action.targets=$5,
+        Action.stmts=(rev $8)
+    }
+}
 
-Trigger
-    : trigger id on '(' Expr ')' '{' StmtList '}' { TriggerNode { triggerName=$2, triggerOn=$5, triggerStmts=$8 } }
+Trigger: trigger id on '(' Expr ')' '{' StmtList '}' {
+    Trigger.Trigger {
+        Trigger.name=$2,
+        Trigger.on=$5,
+        Trigger.stmts=(rev $8)
+    }
+}
 
 Stmt
-    : let id '=' Expr ';' { DeclareNode Declare { declareVar=$2, declareVal=$4 } }
-    | id '=' Expr ';' { AssignNode Assign { assignVar=$1, assignVal=$3 } }
-    | PropLiteral '=' Expr ';' { AssignPropNode AssignProp { assignPropProp=$1, assignPropVal=$3 } }
-    | id '(' ExprList ')' ';' { FuncNode Func { funcName=$1, funcArgs=(rev $3) } }
-    | while '(' Expr ')' '{' StmtList '}' { WhileNode While { whileCond=$3, whileStmts=(rev $6) } }
+    : let id '=' Expr ';' { Stmt.DeclareStmt Declare.Declare { Declare.var=$2, Declare.val=$4 } }
+    | id '=' Expr ';' { Stmt.AssignStmt Assign.Assign { Assign.var=$1, Assign.val=$3 } }
+    | PropLiteral '=' Expr ';' {
+        Stmt.AssignStatStmt AssignStat.AssignStat {
+            AssignStat.stat=$1,
+            AssignStat.val=$3
+        }
+    }
+    | id '(' ExprList ')' ';' { Stmt.FuncStmt Func.Func { Func.name=$1, Func.args=(rev $3) } }
+    | while '(' Expr ')' '{' StmtList '}' {
+        Stmt.WhileStmt While.While {
+            While.cond=$3,
+            While.stmts=(rev $6)
+        }
+    }
     | If { $1 }
 
 If
     : if '(' Expr ')' '{' StmtList '}' ElseIfList Else {
-        IfNode If {
-            ifConds=((($3, $6):(rev $8))++[(IntNode 1, $9)])
+        Stmt.IfStmt If.If {
+            If.conds=((($3, $6):(rev $8))++[(Expr.IntExpr 1, $9)])
         }
     }
 
@@ -251,302 +292,302 @@ NonEmptyExprList
     | NonEmptyExprList ',' Expr { $3 : $1 }
 
 Expr
-    : Expr '+' Factor { BinOpNode Add $1 $3 }
-    | Expr '-' Factor { BinOpNode Sub $1 $3 }
-    | Expr or Factor { BinOpNode Or $1 $3 }
-    | Expr '>' Factor { BinOpNode Gt $1 $3 }
-    | Expr '<' Factor { BinOpNode Lt $1 $3 }
-    | Expr gte Factor { BinOpNode Gte $1 $3 }
-    | Expr lte Factor { BinOpNode Lte $1 $3 }
+    : Expr '+' Factor { Expr.BinOpExpr Expr.Add $1 $3 }
+    | Expr '-' Factor { Expr.BinOpExpr Expr.Sub $1 $3 }
+    | Expr or Factor { Expr.BinOpExpr Expr.Or $1 $3 }
+    | Expr '>' Factor { Expr.BinOpExpr Expr.Gt $1 $3 }
+    | Expr '<' Factor { Expr.BinOpExpr Expr.Lt $1 $3 }
+    | Expr gte Factor { Expr.BinOpExpr Expr.Gte $1 $3 }
+    | Expr lte Factor { Expr.BinOpExpr Expr.Lte $1 $3 }
     | Factor { $1 }
 
 Factor
-    : Factor '*' Unary { BinOpNode Mul $1 $3 }
-    | Factor '/' Unary { BinOpNode Div $1 $3 }
-    | Factor '%' Unary { BinOpNode Mod $1 $3 }
-    | Factor and Unary { BinOpNode And $1 $3 }
+    : Factor '*' Unary { Expr.BinOpExpr Expr.Mul $1 $3 }
+    | Factor '/' Unary { Expr.BinOpExpr Expr.Div $1 $3 }
+    | Factor '%' Unary { Expr.BinOpExpr Expr.Mod $1 $3 }
+    | Factor and Unary { Expr.BinOpExpr Expr.And $1 $3 }
     | Unary { $1 }
 
 Unary
-    : '-' Term { UnOpNode Neg $2 }
-    | not Term { UnOpNode Not $2 }
+    : '-' Term { Expr.UnOpExpr Expr.Neg $2 }
+    | not Term { Expr.UnOpExpr Expr.Not $2 }
     | Term { $1 }
 
 Term
     : '(' Expr ')' { $2 }
-    | int { IntNode $1 }
-    | dice { DiceNode Dice { diceCount=1, diceSize=1 } }
-    | id { IdNode $1 }
-    | PropLiteral { PropNode $1 }
+    | int { Expr.IntExpr $1 }
+    | dice { Expr.DiceExpr Dice.Dice { Dice.count=1, Dice.size=1 } }
+    | id { Expr.VarExpr $1 }
+    | PropLiteral { Expr.StatExpr $1 }
 
-PropLiteral : id '.' id { Prop { propVar=$1, propName=$3 } }
+PropLiteral : id '.' id { Stat.Stat { Stat.owner=$1, Stat.name=$3 } }
 
 {
 parseError :: [Token] -> a
 parseError _ = error "Parse error"
 
-data DgNode = DgNode {
-    dgGame :: GameNode,
-    dgStatblock :: Map String Int,
-    dgPlayerTemplate :: EntityTemplateNode,
-    dgPlayer :: Entity,
-    dgEnemies :: [EntityTemplateNode],
-    dgItems :: Map String ItemTemplateNode,
-    dgRooms :: Map String Room
-} deriving Show
-
-data GameNode = GameNode String deriving Show
-
-data StatblockNode = StatblockNode {
-    stats :: Map String Int
-} deriving Show
-
-data StatNode = StatNode {
-    statName :: String,
-    statVal :: Int
-} deriving Show
-
-data EntityType = Player | Enemy deriving Show
-
-data EntityTemplateNode = EntityTemplateNode {
-    entityTemplateType :: EntityType,
-    entityTemplateName :: String,
-    entityTemplateArgs :: [String],
-    entityTemplateStats :: Map String Int,
-    entityTemplateAlive :: ExprNode,
-    entityTemplateActions :: Map String ActionNode,
-    entityTemplateTriggers :: Map String TriggerNode
-} deriving Show
-
-data ItemTemplateNode = ItemTemplateNode {
-    itemTemplateName :: String,
-    itemTemplateAttribs :: [String],
-    itemTemplateArgs :: [String],
-    itemTemplateActions :: Map String ActionNode
-} deriving Show
-
-data RoomTemplateNode = RoomTemplateNode {
-    roomTemplateName :: String,
-    roomTemplateEntities :: [RoomTemplateEntity],
-    roomTemplateItems :: [RoomTemplateItem],
-    roomTemplateDoors :: [Door]
-} deriving Show
-
-data RoomTemplateEntity = RoomTemplateEntity {
-    roomTemplateEntityName :: String,
-    roomTemplateEntityType :: String,
-    roomTemplateEntityArgs :: [ExprNode]
-} deriving Show
-
-data RoomTemplateItem = RoomTemplateItem {
-    roomTemplateItemName :: String,
-    roomTemplateItemType :: String,
-    roomTemplateItemArgs :: [ExprNode]
-} deriving Show
-
-data Door = Door {
-    doorName :: String,
-    doorTo :: String,
-    doorReq :: ExprNode
-} deriving Show
-
-data ActionNode = ActionNode {
-    actionName :: String,
-    actionTargets :: ExprNode,
-    actionStmts :: [StmtNode]
-} deriving Show
-
-data TriggerNode = TriggerNode {
-    triggerName :: String,
-    triggerOn :: ExprNode,
-    triggerStmts :: [StmtNode]
-} deriving Show
-
-data Declare = Declare {
-    declareVar :: String,
-    declareVal :: ExprNode
-} deriving Show
-
-data Assign = Assign {
-    assignVar :: String,
-    assignVal :: ExprNode
-} deriving Show
-
-data AssignProp = AssignProp {
-    assignPropProp :: Prop,
-    assignPropVal :: ExprNode
-} deriving Show
-
-data Func = Func {
-    funcName :: String,
-    funcArgs :: [ExprNode]
-} deriving Show
-
-data While = While {
-    whileCond :: ExprNode,
-    whileStmts :: [StmtNode]
-} deriving Show
-
-data If = If {
-    ifConds :: [(ExprNode, [StmtNode])]
-} deriving Show
-
-data ElseIf = ElseIf {
-    elseIfCond :: ExprNode,
-    elseIfStmts :: [StmtNode]
-} deriving Show
-
-data StmtNode
-    = DeclareNode Declare
-    | AssignNode Assign
-    | AssignPropNode AssignProp
-    | FuncNode Func
-    | WhileNode While
-    | IfNode If deriving Show
-
-data Dice = Dice {
-    diceCount :: Int,
-    diceSize :: Int
-} deriving Show
-
-data Prop = Prop {
-    propVar :: String,
-    propName :: String
-} deriving Show
-
-data BinOp
-    = Add
-    | Sub
-    | Or
-    | Gt
-    | Lt
-    | Gte
-    | Lte
-    | Mul
-    | Div
-    | Mod
-    | And deriving Show
-
-data UnOp
-    = Neg
-    | Not deriving Show
-
-data ExprNode
-    = BinOpNode BinOp ExprNode ExprNode
-    | UnOpNode UnOp ExprNode
-    | IntNode Int
-    | DiceNode Dice
-    | IdNode String
-    | PropNode Prop deriving Show
-
-data Room = Room {
-    roomName :: String,
-    roomEntities :: Map String Entity,
-    roomItems :: Map String Item,
-    roomDoors :: [Door]
-} deriving Show
-
-data Entity = Entity {
-    entityType :: EntityType,
-    entityName :: String,
-    entityArgs :: Map String ExprNode,
-    entityStats :: Map String Int,
-    entityAlive :: ExprNode,
-    entityActions :: Map String ActionNode,
-    entityTriggers :: Map String TriggerNode,
-    entityItems :: Map String Item
-} deriving Show
-
-data Item = Item {
-    itemName :: String,
-    itemAttribs :: Set String,
-    itemArgs :: Map String ExprNode,
-    itemActions :: Map String ActionNode
-} deriving Show
-
-populateRoom :: [EntityTemplateNode] -> [ItemTemplateNode] -> StatblockNode -> RoomTemplateNode -> Room
-populateRoom ets its sb rt = Room {
-    roomName=(roomTemplateName rt),
-    roomEntities=(
-        let entityTemplateMap = (listToMap ets entityTemplateName id) in
-        listToMap
-            (
-                map
-                    (
-                        entityFromTemplate
-                            entityTemplateMap
-                            sb
-                    )
-                    (roomTemplateEntities rt)
-            )
-            entityName
-            id
-        ),
-    roomItems=(
-        let itemTemplateMap = (listToMap its itemTemplateName id) in
-        listToMap
-            (
-                map
-                    (itemFromTemplate itemTemplateMap)
-                    (roomTemplateItems rt)
-            )
-            itemName
-            id
-    ),
-    roomDoors=(roomTemplateDoors rt)
-}
-
-itemFromTemplate :: Map String ItemTemplateNode -> RoomTemplateItem -> Item
-itemFromTemplate its rti =
-    let
-        template = case (Map.lookup (roomTemplateItemType rti) its) of
-            Just x -> x
-            Nothing -> error "Unknown item type"
-    in
-        Item {
-            itemName=(roomTemplateItemName rti),
-            itemAttribs=(Set.fromList (itemTemplateAttribs template)),
-            itemArgs=Map.fromList (
-                    zip
-                        (itemTemplateArgs template)
-                        (roomTemplateItemArgs rti)
-                ),
-            itemActions=(itemTemplateActions template)
-        }
-
-entityFromTemplate :: Map String EntityTemplateNode -> StatblockNode -> RoomTemplateEntity -> Entity
-entityFromTemplate ets sb rte =
-    let
-        template = case (Map.lookup (roomTemplateEntityType rte) ets) of
-            Just x -> x
-            Nothing -> error "Unknown entity type"
-    in
-        Entity {
-            entityType=(entityTemplateType template),
-            entityName=(roomTemplateEntityName rte),
-            entityArgs=(
-                Map.fromList (
-                    zip
-                        (entityTemplateArgs template)
-                        (roomTemplateEntityArgs rte)
-                )
-            ),
-            entityStats=(getEntityStats sb template),
-            entityAlive=(entityTemplateAlive template),
-            entityActions=(entityTemplateActions template),
-            entityTriggers=(entityTemplateTriggers template),
-            entityItems=Map.empty
-        }
-
-getEntityStats :: StatblockNode -> EntityTemplateNode -> Map String Int
-getEntityStats sb template =
-    Map.union
-        (
-            Map.intersection
-                (entityTemplateStats template)
-                (stats sb)
-        )
-        (stats sb)
-
+-- data DgNode = DgNode {
+--     dgGame :: GameNode,
+--     dgStatblock :: Map String Int,
+--     dgPlayerTemplate :: EntityTemplateNode,
+--     dgPlayer :: Entity,
+--     dgEnemies :: [EntityTemplateNode],
+--     dgItems :: Map String ItemTemplateNode,
+--     dgRooms :: Map String Room
+-- } deriving Show
+-- 
+-- data GameNode = GameNode String deriving Show
+-- 
+-- data StatblockNode = StatblockNode {
+--     stats :: Map String Int
+-- } deriving Show
+-- 
+-- data StatNode = StatNode {
+--     statName :: String,
+--     statVal :: Int
+-- } deriving Show
+-- 
+-- data EntityType = Player | Enemy deriving Show
+-- 
+-- data EntityTemplateNode = EntityTemplateNode {
+--     entityTemplateType :: EntityType,
+--     entityTemplateName :: String,
+--     entityTemplateArgs :: [String],
+--     entityTemplateStats :: Map String Int,
+--     entityTemplateAlive :: ExprNode,
+--     entityTemplateActions :: Map String ActionNode,
+--     entityTemplateTriggers :: Map String TriggerNode
+-- } deriving Show
+-- 
+-- data ItemTemplateNode = ItemTemplateNode {
+--     itemTemplateName :: String,
+--     itemTemplateAttribs :: [String],
+--     itemTemplateArgs :: [String],
+--     itemTemplateActions :: Map String ActionNode
+-- } deriving Show
+-- 
+-- data RoomTemplateNode = RoomTemplateNode {
+--     roomTemplateName :: String,
+--     roomTemplateEntities :: [RoomTemplateEntity],
+--     roomTemplateItems :: [RoomTemplateItem],
+--     roomTemplateDoors :: [Door]
+-- } deriving Show
+-- 
+-- data RoomTemplateEntity = RoomTemplateEntity {
+--     roomTemplateEntityName :: String,
+--     roomTemplateEntityType :: String,
+--     roomTemplateEntityArgs :: [ExprNode]
+-- } deriving Show
+-- 
+-- data RoomTemplateItem = RoomTemplateItem {
+--     roomTemplateItemName :: String,
+--     roomTemplateItemType :: String,
+--     roomTemplateItemArgs :: [ExprNode]
+-- } deriving Show
+-- 
+-- -- data Door = Door {
+-- --     doorName :: String,
+-- --     doorTo :: String,
+-- --     doorReq :: ExprNode
+-- -- } deriving Show
+-- 
+-- data ActionNode = ActionNode {
+--     actionName :: String,
+--     actionTargets :: ExprNode,
+--     actionStmts :: [StmtNode]
+-- } deriving Show
+-- 
+-- data TriggerNode = TriggerNode {
+--     triggerName :: String,
+--     triggerOn :: ExprNode,
+--     triggerStmts :: [StmtNode]
+-- } deriving Show
+-- 
+-- data Declare = Declare {
+--     declareVar :: String,
+--     declareVal :: ExprNode
+-- } deriving Show
+-- 
+-- data Assign = Assign {
+--     assignVar :: String,
+--     assignVal :: ExprNode
+-- } deriving Show
+-- 
+-- data AssignProp = AssignProp {
+--     assignPropProp :: Prop,
+--     assignPropVal :: ExprNode
+-- } deriving Show
+-- 
+-- data Func = Func {
+--     funcName :: String,
+--     funcArgs :: [ExprNode]
+-- } deriving Show
+-- 
+-- data While = While {
+--     whileCond :: ExprNode,
+--     whileStmts :: [StmtNode]
+-- } deriving Show
+-- 
+-- data If = If {
+--     ifConds :: [(ExprNode, [StmtNode])]
+-- } deriving Show
+-- 
+-- data ElseIf = ElseIf {
+--     elseIfCond :: ExprNode,
+--     elseIfStmts :: [StmtNode]
+-- } deriving Show
+-- 
+-- data StmtNode
+--     = DeclareNode Declare
+--     | AssignNode Assign
+--     | AssignPropNode AssignProp
+--     | FuncNode Func
+--     | WhileNode While
+--     | IfNode If deriving Show
+-- 
+-- data Dice = Dice {
+--     diceCount :: Int,
+--     diceSize :: Int
+-- } deriving Show
+-- 
+-- data Prop = Prop {
+--     propVar :: String,
+--     propName :: String
+-- } deriving Show
+-- 
+-- data BinOp
+--     = Add
+--     | Sub
+--     | Or
+--     | Gt
+--     | Lt
+--     | Gte
+--     | Lte
+--     | Mul
+--     | Div
+--     | Mod
+--     | And deriving Show
+-- 
+-- data UnOp
+--     = Neg
+--     | Not deriving Show
+-- 
+-- data ExprNode
+--     = BinOpNode BinOp ExprNode ExprNode
+--     | UnOpNode UnOp ExprNode
+--     | IntNode Int
+--     | DiceNode Dice
+--     | IdNode String
+--     | PropNode Prop deriving Show
+-- 
+-- data Room = Room {
+--     roomName :: String,
+--     roomEntities :: Map String Entity,
+--     roomItems :: Map String Item,
+--     roomDoors :: [Door]
+-- } deriving Show
+-- 
+-- data Entity = Entity {
+--     entityType :: EntityType,
+--     entityName :: String,
+--     entityArgs :: Map String ExprNode,
+--     entityStats :: Map String Int,
+--     entityAlive :: ExprNode,
+--     entityActions :: Map String ActionNode,
+--     entityTriggers :: Map String TriggerNode,
+--     entityItems :: Map String Item
+-- } deriving Show
+-- 
+-- data Item = Item {
+--     itemName :: String,
+--     itemAttribs :: Set String,
+--     itemArgs :: Map String ExprNode,
+--     itemActions :: Map String ActionNode
+-- } deriving Show
+-- 
+-- populateRoom :: [EntityTemplateNode] -> [ItemTemplateNode] -> StatblockNode -> RoomTemplateNode -> Room
+-- populateRoom ets its sb rt = Room {
+--     roomName=(roomTemplateName rt),
+--     roomEntities=(
+--         let entityTemplateMap = (listToMap ets entityTemplateName id) in
+--         listToMap
+--             (
+--                 map
+--                     (
+--                         entityFromTemplate
+--                             entityTemplateMap
+--                             sb
+--                     )
+--                     (roomTemplateEntities rt)
+--             )
+--             entityName
+--             id
+--         ),
+--     roomItems=(
+--         let itemTemplateMap = (listToMap its itemTemplateName id) in
+--         listToMap
+--             (
+--                 map
+--                     (itemFromTemplate itemTemplateMap)
+--                     (roomTemplateItems rt)
+--             )
+--             itemName
+--             id
+--     ),
+--     roomDoors=(roomTemplateDoors rt)
+-- }
+-- 
+-- itemFromTemplate :: Map String ItemTemplateNode -> RoomTemplateItem -> Item
+-- itemFromTemplate its rti =
+--     let
+--         template = case (Map.lookup (roomTemplateItemType rti) its) of
+--             Just x -> x
+--             Nothing -> error "Unknown item type"
+--     in
+--         Item {
+--             itemName=(roomTemplateItemName rti),
+--             itemAttribs=(Set.fromList (itemTemplateAttribs template)),
+--             itemArgs=Map.fromList (
+--                     zip
+--                         (itemTemplateArgs template)
+--                         (roomTemplateItemArgs rti)
+--                 ),
+--             itemActions=(itemTemplateActions template)
+--         }
+-- 
+-- entityFromTemplate :: Map String EntityTemplateNode -> StatblockNode -> RoomTemplateEntity -> Entity
+-- entityFromTemplate ets sb rte =
+--     let
+--         template = case (Map.lookup (roomTemplateEntityType rte) ets) of
+--             Just x -> x
+--             Nothing -> error "Unknown entity type"
+--     in
+--         Entity {
+--             entityType=(entityTemplateType template),
+--             entityName=(roomTemplateEntityName rte),
+--             entityArgs=(
+--                 Map.fromList (
+--                     zip
+--                         (entityTemplateArgs template)
+--                         (roomTemplateEntityArgs rte)
+--                 )
+--             ),
+--             entityStats=(getEntityStats sb template),
+--             entityAlive=(entityTemplateAlive template),
+--             entityActions=(entityTemplateActions template),
+--             entityTriggers=(entityTemplateTriggers template),
+--             entityItems=Map.empty
+--         }
+-- 
+-- getEntityStats :: StatblockNode -> EntityTemplateNode -> Map String Int
+-- getEntityStats sb template =
+--     Map.union
+--         (
+--             Map.intersection
+--                 (entityTemplateStats template)
+--                 (stats sb)
+--         )
+--         (stats sb)
+-- 
 }
 

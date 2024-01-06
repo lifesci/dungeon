@@ -1,4 +1,4 @@
-module Declare where
+module Declare(Declare(..)) where
 
 import Expr(Expr)
 

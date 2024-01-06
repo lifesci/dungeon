@@ -1,4 +1,4 @@
-module Action where
+module Action(Action(..)) where
 
 import Expr(Expr)
 import Stmt(Stmt)

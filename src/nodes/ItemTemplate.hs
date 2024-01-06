@@ -1,4 +1,4 @@
-module ItemTemplate where
+module ItemTemplate(ItemTemplate(..)) where
 
 import Data.Map(Map)
 import Action(Action)

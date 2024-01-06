@@ -1,4 +1,4 @@
-module AssignStat where
+module AssignStat(AssignStat(..)) where
 
 import Stat(Stat)
 import Expr(Expr)

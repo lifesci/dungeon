@@ -1,10 +1,18 @@
 module Eval where
 
-import Parser
 import Scope(Scope)
 import qualified Scope as Scope
 import DgState(DgState)
 import qualified DgState as DgState
+import qualified Stmt
+import qualified Declare
+import qualified Assign
+import qualified While
+import qualified AssignStat
+import qualified If
+import qualified Func
+import qualified Expr
+import qualified Dice
 import System.Random(StdGen, randomR)
 
 boolToInt :: Bool -> Int
@@ -13,7 +21,7 @@ boolToInt x = if x then 1 else 0
 intToBool :: Int -> Bool
 intToBool x = x /= 0
 
-evalStmtBlock :: [StmtNode] -> DgState -> DgState
+evalStmtBlock :: [Stmt.Stmt] -> DgState -> DgState
 evalStmtBlock [] state = DgState.leaveScope state
 evalStmtBlock (x:xs) state =
     if
@@ -23,12 +31,12 @@ evalStmtBlock (x:xs) state =
     else
         state
 
-evalStmt :: DgState -> StmtNode -> DgState
-evalStmt state (DeclareNode d) = evalDeclare d state
-evalStmt state (AssignNode a) = evalAssign a state
-evalStmt state (WhileNode w) =
+evalStmt :: DgState -> Stmt.Stmt -> DgState
+evalStmt state (Stmt.DeclareStmt d) = evalDeclare d state
+evalStmt state (Stmt.AssignStmt a) = evalAssign a state
+evalStmt state (Stmt.WhileStmt w) =
     let
-        (condVal, newState) = evalExpr (whileCond w) state
+        (condVal, newState) = evalExpr (While.cond w) state
     in
         if
             intToBool condVal
@@ -36,23 +44,23 @@ evalStmt state (WhileNode w) =
             evalStmt
                 (
                     evalStmtBlock
-                        (whileStmts w)
+                        (While.stmts w)
                         (DgState.enterScope newState)
                 )
-                (WhileNode w)
+                (Stmt.WhileStmt w)
         else
             newState
-evalStmt state (AssignPropNode ap) =
-    let (val, newState) = evalExpr (assignPropVal ap) state in
-        DgState.updateProp (assignPropProp ap) val newState
-evalStmt state (IfNode i) = evalIf (ifConds i) state
-evalStmt state (FuncNode f) = evalFunc f state
+evalStmt state (Stmt.AssignStatStmt as) =
+    let (val, newState) = evalExpr (AssignStat.val as) state in
+        DgState.updateProp (AssignStat.stat as) val newState
+evalStmt state (Stmt.IfStmt i) = evalIf (If.conds i) state
+evalStmt state (Stmt.FuncStmt f) = evalFunc f state
 
-evalFunc :: Func -> DgState -> DgState
-evalFunc Func{funcName="quit"} state = DgState.setRunning False state
+evalFunc :: Func.Func -> DgState -> DgState
+evalFunc Func.Func{Func.name="quit"} state = DgState.setRunning False state
 evalFunc _ _ = error "Unknown function"
 
-evalIf :: [(ExprNode, [StmtNode])] -> DgState -> DgState
+evalIf :: [(Expr.Expr, [Stmt.Stmt])] -> DgState -> DgState
 evalIf [] state = state
 evalIf ((expr, stmts):xs) state =
     let
@@ -65,19 +73,19 @@ evalIf ((expr, stmts):xs) state =
         else
             evalIf xs newState
 
-evalDeclare :: Declare -> DgState -> DgState
+evalDeclare :: Declare.Declare -> DgState -> DgState
 evalDeclare d state =
     let
-        (val, newState) = evalExpr (declareVal d) state
+        (val, newState) = evalExpr (Declare.val d) state
     in
-        DgState.updateScope (Scope.add (DgState.scope newState) (declareVar d) val) newState
+        DgState.updateScope (Scope.add (DgState.scope newState) (Declare.var d) val) newState
 
-evalAssign :: Assign -> DgState -> DgState
+evalAssign :: Assign.Assign -> DgState -> DgState
 evalAssign a state =
     let
-        (val, newState) = evalExpr (assignVal a) state
+        (val, newState) = evalExpr (Assign.val a) state
     in
-        DgState.updateScope (Scope.update (DgState.scope newState) (assignVar a) val) newState
+        DgState.updateScope (Scope.update (DgState.scope newState) (Assign.var a) val) newState
 
 and' :: Int -> Int -> Int
 and' x y = boolToInt ((intToBool x) && intToBool y)
@@ -97,20 +105,20 @@ gte x y = boolToInt (x >= y)
 lte :: Int -> Int -> Int
 lte x y = boolToInt (x <= y)
 
-evalExpr :: ExprNode -> DgState -> (Int, DgState)
-evalExpr (BinOpNode op x y) state = let
+evalExpr :: Expr.Expr -> DgState -> (Int, DgState)
+evalExpr (Expr.BinOpExpr op x y) state = let
     f = case op of
-        Add -> (+)
-        Sub -> (-)
-        Mul -> (*)
-        Div -> div
-        Mod -> mod
-        Or -> or'
-        And -> and'
-        Gt -> gt
-        Lt -> lt
-        Gte -> gte
-        Lte -> lte
+        Expr.Add -> (+)
+        Expr.Sub -> (-)
+        Expr.Mul -> (*)
+        Expr.Div -> div
+        Expr.Mod -> mod
+        Expr.Or -> or'
+        Expr.And -> and'
+        Expr.Gt -> gt
+        Expr.Lt -> lt
+        Expr.Gte -> gte
+        Expr.Lte -> lte
     (lVal, lState) = evalExpr x state
     in
         let
@@ -118,18 +126,18 @@ evalExpr (BinOpNode op x y) state = let
         in
             ((f lVal rVal), rState)
 
-evalExpr (UnOpNode op x) state =
+evalExpr (Expr.UnOpExpr op x) state =
     let
         (val, newState) = evalExpr x state
     in
         case op of
-            Neg -> (-(val), newState)
-            Not -> (boolToInt (not (intToBool (val))), newState)
-evalExpr (IntNode x) state = (x, state)
-evalExpr (IdNode idn) state = (Scope.search (DgState.scope state) idn, state)
-evalExpr (PropNode p) state = (DgState.getPropVal p state, state)
-evalExpr (DiceNode d) state =
+            Expr.Neg -> (-(val), newState)
+            Expr.Not -> (boolToInt (not (intToBool (val))), newState)
+evalExpr (Expr.IntExpr x) state = (x, state)
+evalExpr (Expr.VarExpr vn) state = (Scope.search (DgState.scope state) vn, state)
+evalExpr (Expr.StatExpr p) state = (DgState.getPropVal p state, state)
+evalExpr (Expr.DiceExpr d) state = -- TODO: fix logic here
     let
-        (val, newGen) = randomR ((diceCount d), (diceCount d)*(diceSize d)) (DgState.rng state)
+        (val, newGen) = randomR ((Dice.count d), (Dice.count d)*(Dice.size d)) (DgState.rng state)
     in
         (val, DgState.updateGen newGen state)

@@ -1,4 +1,4 @@
-module RoomTemplateItem where
+module RoomTemplateItem(RoomTemplateItem(..)) where
 
 import Expr(Expr)
 

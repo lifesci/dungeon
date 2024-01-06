@@ -1,4 +1,4 @@
-module Trigger where
+module Trigger(Trigger(..)) where
 
 import Expr(Expr)
 import Stmt(Stmt)

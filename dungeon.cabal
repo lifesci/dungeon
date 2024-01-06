@@ -45,11 +45,20 @@ library
       Func
       ItemTemplate
       RoomTemplate
+      RoomTemplateEntity
+      RoomTemplateItem
       Stat
+      If
+      While
       Stmt
       Trigger
+
+      Entity
+      Item
+      Room
   other-modules:
       Paths_dungeon
+      InternalStmt
   autogen-modules:
       Paths_dungeon
   hs-source-dirs:
