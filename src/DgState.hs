@@ -18,6 +18,11 @@ data DgState = DgState {
     rng :: StdGen
 } deriving Show
 
+toString :: DgState -> String
+toString state =
+    (currentRoom state) ++ "\n"
+    ++ ""
+
 buildState :: StdGen -> DgNode -> DgState
 buildState gen dgn = DgState {
     currentRoom="test",
