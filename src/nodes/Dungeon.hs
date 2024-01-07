@@ -13,6 +13,6 @@ data Dungeon = Dungeon {
     playerTemplate :: EntityTemplate,
     enemyTemplates :: Map String EntityTemplate,
     itemTemplates :: Map String ItemTemplate,
-    roomTemplates :: Map String RoomTemplate
+    roomTemplates :: [RoomTemplate]
 } deriving Show
 

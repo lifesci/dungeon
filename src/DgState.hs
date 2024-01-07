@@ -18,6 +18,7 @@ import qualified Dungeon
 import qualified Entity
 import qualified Room
 import qualified Scope as Scope
+import Lib(listToMap)
 import System.Random(StdGen)
 import Data.Map(Map)
 import qualified Data.Map as Map
@@ -44,8 +45,18 @@ buildState gen dgn = DgState {
     scope=Scope.empty,
     source=Nothing,
     target=Nothing,
-    player=Entity.Entity {}, -- TODO
-    rooms=Map.empty, -- TODO
+    player=Entity.playerFromTemplate (Dungeon.playerTemplate dgn) (Dungeon.statblock dgn),
+    rooms=listToMap
+        (
+            map
+                (Room.fromTemplate
+                    (Dungeon.enemyTemplates dgn)
+                    (Dungeon.itemTemplates dgn)
+                    (Dungeon.statblock dgn))
+                (Dungeon.roomTemplates dgn)
+        )
+        Room.name
+        id,
     running=True,
     rng=gen
 }
