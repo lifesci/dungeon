@@ -25,7 +25,7 @@ enemy test_enemy() {
 
 item test_item<weapon>() {
     action attack targets (entity) {
-        let dmg = 5;
+        let dmg = 2d6;
         target.hp = target.hp - dmg;
         if(1) {
             dmg = 6;

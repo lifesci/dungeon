@@ -1,5 +1,5 @@
 {
-module Lexer where
+module Lexer (alexScanTokens, Token(..)) where
 }
 
 %wrapper "basic"
@@ -68,7 +68,6 @@ tokens :-
     @dice { \s -> TRawDice s }
 
 {
-
 data Token
     = TAdd
     | TSub
@@ -125,8 +124,5 @@ data Token
     | TAlive
 
     deriving (Eq, Show)
-
-main = do
-    s <- getContents
-    print (alexScanTokens s)
 }
+

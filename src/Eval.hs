@@ -1,4 +1,4 @@
-module Eval where
+module Eval (evalStmt) where
 
 import Scope(Scope)
 import qualified Scope as Scope
@@ -136,8 +136,8 @@ evalExpr (Expr.UnOpExpr op x) state =
 evalExpr (Expr.IntExpr x) state = (x, state)
 evalExpr (Expr.VarExpr vn) state = (Scope.search (DgState.scope state) vn, state)
 evalExpr (Expr.StatExpr p) state = (DgState.getPropVal p state, state)
-evalExpr (Expr.DiceExpr d) state = -- TODO: fix logic here
+evalExpr (Expr.DiceExpr d) state =
     let
-        (val, newGen) = randomR ((Dice.count d), (Dice.count d)*(Dice.size d)) (DgState.rng state)
+        (val, newGen) = Dice.roll (DgState.rng state) d
     in
         (val, DgState.updateGen newGen state)

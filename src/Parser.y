@@ -1,5 +1,6 @@
 {
-module Parser where
+module Parser (parse) where
+
 import Lexer
 import Lib(rev, listToMap)
 import Data.Map(Map)
@@ -91,9 +92,9 @@ Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
         Dungeon.name=$1,
         Dungeon.statblock=$2,
         Dungeon.playerTemplate=$3,
-        Dungeon.enemyTemplates=Map.empty, -- TODO
-        Dungeon.itemTemplates=Map.empty, -- TODO
-        Dungeon.rooms=Map.empty -- TODO
+        Dungeon.enemyTemplates=(listToMap (rev $4) EntityTemplate.name id),
+        Dungeon.itemTemplates=(listToMap (rev $5) ItemTemplate.name id),
+        Dungeon.roomTemplates=(listToMap (rev $6) RoomTemplate.name id)
     }
 }
 
@@ -117,8 +118,8 @@ Player
             EntityTemplate.args=[],
             EntityTemplate.stats=(Map.fromList (rev $6)),
             EntityTemplate.alive=$8,
-            EntityTemplate.actions=Map.empty, -- TODO
-            EntityTemplate.triggers=Map.empty -- TODO
+            EntityTemplate.actions=(listToMap (rev $9) Action.name id),
+            EntityTemplate.triggers=(listToMap (rev $10) Trigger.name id)
         }
     }
 
@@ -134,8 +135,8 @@ Enemy
             EntityTemplate.args=(rev $4),
             EntityTemplate.stats=(Map.fromList (rev $9)),
             EntityTemplate.alive=$11,
-            EntityTemplate.actions=Map.empty, -- TODO
-            EntityTemplate.triggers=Map.empty -- TODO
+            EntityTemplate.actions=(listToMap (rev $12) Action.name id),
+            EntityTemplate.triggers=(listToMap (rev $13) Trigger.name id)
         }
     }
 
@@ -149,7 +150,7 @@ Item
             ItemTemplate.name=$2,
             ItemTemplate.attribs=(rev $4),
             ItemTemplate.args=(rev $7),
-            ItemTemplate.actions=Map.empty -- TODO
+            ItemTemplate.actions=(listToMap (rev $10) Action.name id)
         }
     }
 
@@ -316,7 +317,7 @@ Unary
 Term
     : '(' Expr ')' { $2 }
     | int { Expr.IntExpr $1 }
-    | dice { Expr.DiceExpr Dice.Dice { Dice.count=1, Dice.size=1 } }
+    | dice { Expr.DiceExpr (Dice.fromStr $1) }
     | id { Expr.VarExpr $1 }
     | PropLiteral { Expr.StatExpr $1 }
 

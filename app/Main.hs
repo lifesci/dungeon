@@ -3,7 +3,6 @@ module Main (main) where
 import Parser(parse)
 import Lexer(alexScanTokens)
 import DgState(DgState)
-import qualified DgState as DgState
 import System.Random(newStdGen)
 
 main :: IO ()
