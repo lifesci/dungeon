@@ -134,7 +134,7 @@ evalExpr (Expr.UnOpExpr op x) state =
             Expr.Neg -> (-(val), newState)
             Expr.Not -> (boolToInt (not (intToBool (val))), newState)
 evalExpr (Expr.IntExpr x) state = (x, state)
-evalExpr (Expr.VarExpr vn) state = (Scope.search (DgState.scope state) vn, state)
+evalExpr (Expr.VarExpr v) state = (Scope.lookup (DgState.scope state) v, state)
 evalExpr (Expr.StatExpr p) state = (DgState.getPropVal p state, state)
 evalExpr (Expr.DiceExpr d) state =
     let
