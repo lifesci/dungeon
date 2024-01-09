@@ -18,7 +18,7 @@ import qualified Dungeon
 import qualified Entity
 import qualified Room
 import qualified Scope as Scope
-import Lib(listToMap)
+import Lib(listToMap, join)
 import System.Random(StdGen)
 import Data.Map(Map)
 import qualified Data.Map as Map
@@ -35,9 +35,14 @@ data DgState = DgState {
 } deriving Show
 
 toString :: DgState -> String
-toString state =
-    (currentRoom state) ++ "\n"
-    ++ ""
+toString state = join
+    "\n"
+    [
+        "Player",
+        Entity.toString (player state),
+        "Room: " ++ (currentRoom state),
+        Room.toString (getCurrentRoom state)
+    ]
 
 buildState :: StdGen -> Dungeon.Dungeon -> DgState
 buildState gen dgn = DgState {

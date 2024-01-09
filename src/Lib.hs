@@ -1,6 +1,7 @@
 module Lib (
     rev,
-    listToMap
+    listToMap,
+    join
 ) where
 
 import Data.Map(Map)
@@ -14,3 +15,9 @@ rev xs = foldl rev' [] xs
 
 listToMap :: Ord b => [a] -> (a -> b) -> (a -> c) -> Map b c
 listToMap xs key val = foldr (\x acc -> (Map.insert (key x) (val x) acc)) Map.empty xs
+
+join :: String -> [String] -> String
+join _ [] = ""
+join _ (x:[]) = x
+join i (x:xs) = x ++ i ++ (join i xs)
+

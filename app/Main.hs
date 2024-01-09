@@ -17,4 +17,5 @@ main = do
 
 run :: DgState -> IO ()
 run state = do
-    print (DgState.rooms state)
+    putStr (DgState.toString state)
+

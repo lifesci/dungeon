@@ -1,4 +1,4 @@
-module Room(Room(..), fromTemplate) where
+module Room(Room(..), fromTemplate, toString) where
 
 import qualified Entity
 import qualified Item
@@ -18,6 +18,9 @@ data Room = Room {
     items :: Map String Item.Item,
     doors :: [Door]
 } deriving Show
+
+toString :: Room -> String
+toString r = ""
 
 fromTemplate :: Map String EntityTemplate.EntityTemplate -> Map String ItemTemplate.ItemTemplate -> Map String Int -> RoomTemplate.RoomTemplate -> Room
 fromTemplate etm itm sb rt = Room {

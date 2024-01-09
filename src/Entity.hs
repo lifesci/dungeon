@@ -1,7 +1,8 @@
 module Entity (
     Entity(..),
     fromTemplate,
-    playerFromTemplate
+    playerFromTemplate,
+    toString
 ) where
 
 import qualified EntityTemplate
@@ -10,6 +11,7 @@ import qualified Expr
 import qualified Action
 import qualified Trigger
 import qualified Item
+import Lib(join)
 import Data.Map(Map)
 import qualified Data.Map as Map
 
@@ -23,6 +25,18 @@ data Entity = Entity {
     triggers :: Map String Trigger.Trigger,
     items :: Map String Item.Item
 } deriving Show
+
+statsToString :: Map String Int -> [String]
+statsToString m = map statToString (Map.assocs m) where
+    statToString (x, y) = x ++ ": " ++ (show y)
+
+toString :: Entity -> String
+toString e = join
+    "\n"
+    ([
+        "Name: " ++ (name e)
+    ]
+    ++ (statsToString (stats e)))
 
 fromTemplate :: Maybe EntityTemplate.EntityTemplate -> Map String Int -> RoomTemplateEntity.RoomTemplateEntity -> Entity.Entity
 fromTemplate Nothing _ _ = error "Entity template not found"

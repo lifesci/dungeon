@@ -39,7 +39,7 @@ item test_item<weapon>() {
     }
 }
 
-room test_room1 {
+room start {
     enemies {}
     items {
         t1 = test_item();
