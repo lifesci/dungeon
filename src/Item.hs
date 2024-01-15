@@ -1,6 +1,7 @@
 module Item (
     Item(..),
-    fromTemplate
+    fromTemplate,
+    toString
 ) where
 
 import qualified Expr
@@ -11,6 +12,7 @@ import Data.Set(Set)
 import qualified Data.Set as Set
 import Data.Map(Map)
 import qualified Data.Map as Map
+import Lib(join)
 
 data Item = Item {
     name :: String,
@@ -18,6 +20,15 @@ data Item = Item {
     args :: Map String Expr.Expr,
     actions :: Map String Action.Action
 } deriving Show
+
+toString :: Item -> String
+toString i = join
+    "\n"
+    [
+        (name i),
+        "Attributes: " ++ (join ", " (Set.elems (attribs i))),
+        "Actions: " ++ (join ", " (Map.keys (actions i)))
+    ]
 
 fromTemplate :: Maybe ItemTemplate.ItemTemplate -> RoomTemplateItem.RoomTemplateItem -> Item
 fromTemplate Nothing _ = error "Item template not found"

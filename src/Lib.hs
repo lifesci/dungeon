@@ -1,7 +1,8 @@
 module Lib (
     rev,
     listToMap,
-    join
+    join,
+    applyTabs
 ) where
 
 import Data.Map(Map)
@@ -15,6 +16,14 @@ rev xs = foldl rev' [] xs
 
 listToMap :: Ord b => [a] -> (a -> b) -> (a -> c) -> Map b c
 listToMap xs key val = foldr (\x acc -> (Map.insert (key x) (val x) acc)) Map.empty xs
+
+tab :: Int -> String
+tab n
+    | n <= 0 = []
+    | otherwise = ' ':(tab (n-1))
+
+applyTabs :: [String] -> Int  -> [String]
+applyTabs sl t = map (\s -> (tab t) ++ s) sl
 
 join :: String -> [String] -> String
 join _ [] = ""

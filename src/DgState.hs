@@ -35,14 +35,16 @@ data DgState = DgState {
 } deriving Show
 
 toString :: DgState -> String
-toString state = join
-    "\n"
-    [
-        "Player",
-        Entity.toString (player state),
-        "Room: " ++ (currentRoom state),
-        Room.toString (getCurrentRoom state)
-    ]
+toString state =
+    (
+        join
+            "\n"
+            [
+                Entity.toString (player state),
+                Room.toString (getCurrentRoom state)
+            ]
+    )
+    ++ "\n"
 
 buildState :: StdGen -> Dungeon.Dungeon -> DgState
 buildState gen dgn = DgState {

@@ -8,7 +8,7 @@ import qualified RoomTemplate
 import qualified RoomTemplateEntity
 import qualified RoomTemplateItem
 import Door(Door)
-import Lib(listToMap)
+import Lib(listToMap, join)
 import Data.Map(Map)
 import qualified Data.Map as Map
 
@@ -20,7 +20,17 @@ data Room = Room {
 } deriving Show
 
 toString :: Room -> String
-toString r = ""
+toString r = join
+    "\n"
+    (
+        [
+            "Room: " ++ (name r),
+            "Entities"
+        ]
+        ++ (map Entity.toString (Map.elems (entities r)))
+        ++ ["Items"]
+        ++ (map Item.toString (Map.elems (items r)))
+    )
 
 fromTemplate :: Map String EntityTemplate.EntityTemplate -> Map String ItemTemplate.ItemTemplate -> Map String Int -> RoomTemplate.RoomTemplate -> Room
 fromTemplate etm itm sb rt = Room {
