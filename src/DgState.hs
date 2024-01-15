@@ -34,13 +34,13 @@ data DgState = DgState {
     rng :: StdGen
 } deriving Show
 
-toString :: DgState -> String
-toString state =
+toString :: DgState -> Int -> String
+toString state t =
     (
         join
             "\n"
             [
-                Entity.toString (player state),
+                Entity.toString (t+1) (player state),
                 Room.toString (getCurrentRoom state)
             ]
     )

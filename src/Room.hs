@@ -27,7 +27,7 @@ toString r = join
             "Room: " ++ (name r),
             "Entities"
         ]
-        ++ (map Entity.toString (Map.elems (entities r)))
+        ++ (map (Entity.toString 0) (Map.elems (entities r)))
         ++ ["Items"]
         ++ (map Item.toString (Map.elems (items r)))
     )

@@ -17,5 +17,5 @@ main = do
 
 run :: DgState -> IO ()
 run state = do
-    putStr (DgState.toString state)
+    putStr (DgState.toString state 0)
 

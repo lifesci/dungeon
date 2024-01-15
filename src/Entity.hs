@@ -11,7 +11,7 @@ import qualified Expr
 import qualified Action
 import qualified Trigger
 import qualified Item
-import Lib(join)
+import Lib(join, applyTabs)
 import Data.Map(Map)
 import qualified Data.Map as Map
 
@@ -33,18 +33,19 @@ statsToString m = map statToString (Map.assocs m) where
 itemsToString :: Map String Item.Item -> [String]
 itemsToString m = map Item.toString (Map.elems m)
 
-toString :: Entity -> String
-toString e = join
+toString :: Int -> Entity -> String
+toString t e = join
     "\n"
     (
-        [
-            "Name: " ++ (name e)
-        ]
-        ++ (statsToString (stats e))
-        ++ [
-            ("Actions: " ++ (join ", " (Map.keys (actions e)))),
-            "Items"
-        ]
+        [(show (eType e))]
+        ++ (applyTabs [
+            "Name: " ++ (name e),
+            "Stats"
+        ] t)
+        ++ (applyTabs (statsToString (stats e)) (t+1))
+        ++ (applyTabs ["Actions"] t)
+        ++ (applyTabs (Map.keys (actions e)) (t+1))
+        ++ (applyTabs ["Items"] t)
         ++ (itemsToString (items e))
     )
 
