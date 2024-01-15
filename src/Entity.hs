@@ -33,10 +33,13 @@ statsToString m = map statToString (Map.assocs m) where
 toString :: Entity -> String
 toString e = join
     "\n"
-    ([
-        "Name: " ++ (name e)
-    ]
-    ++ (statsToString (stats e)))
+    (
+        [
+            "Name: " ++ (name e)
+        ]
+        ++ (statsToString (stats e))
+        ++ [("Actions: " ++ (join ", " (Map.keys (actions e))))]
+    )
 
 fromTemplate :: Maybe EntityTemplate.EntityTemplate -> Map String Int -> RoomTemplateEntity.RoomTemplateEntity -> Entity.Entity
 fromTemplate Nothing _ _ = error "Entity template not found"
