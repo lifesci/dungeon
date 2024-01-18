@@ -30,8 +30,8 @@ statsToString :: Map String Int -> [String]
 statsToString m = map statToString (Map.assocs m) where
     statToString (x, y) = x ++ ": " ++ (show y)
 
-itemsToString :: Map String Item.Item -> [String]
-itemsToString m = map Item.toString (Map.elems m)
+itemsToString :: Int -> Map String Item.Item -> [String]
+itemsToString t m = map (Item.toString t) (Map.elems m)
 
 toString :: Int -> Entity -> String
 toString t e = join
@@ -46,7 +46,7 @@ toString t e = join
         ++ (applyTabs ["Actions"] t)
         ++ (applyTabs (Map.keys (actions e)) (t+1))
         ++ (applyTabs ["Items"] t)
-        ++ (itemsToString (items e))
+        ++ (itemsToString (t+1) (items e))
     )
 
 fromTemplate :: Maybe EntityTemplate.EntityTemplate -> Map String Int -> RoomTemplateEntity.RoomTemplateEntity -> Entity.Entity

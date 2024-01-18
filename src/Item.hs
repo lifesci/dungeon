@@ -12,7 +12,7 @@ import Data.Set(Set)
 import qualified Data.Set as Set
 import Data.Map(Map)
 import qualified Data.Map as Map
-import Lib(join)
+import Lib(join, applyTabs)
 
 data Item = Item {
     name :: String,
@@ -21,14 +21,16 @@ data Item = Item {
     actions :: Map String Action.Action
 } deriving Show
 
-toString :: Item -> String
-toString i = join
+toString :: Int -> Item -> String
+toString t i = join
     "\n"
-    [
-        (name i),
-        "Attributes: " ++ (join ", " (Set.elems (attribs i))),
-        "Actions: " ++ (join ", " (Map.keys (actions i)))
-    ]
+    (
+        (applyTabs [name i] t)
+        ++ (applyTabs ["Attributes"] (t+1))
+        ++ (applyTabs (Set.elems (attribs i)) (t+2))
+        ++ (applyTabs ["Actions"] (t+1))
+        ++ (applyTabs (Map.keys (actions i)) (t+2))
+    )
 
 fromTemplate :: Maybe ItemTemplate.ItemTemplate -> RoomTemplateItem.RoomTemplateItem -> Item
 fromTemplate Nothing _ = error "Item template not found"

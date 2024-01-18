@@ -29,7 +29,7 @@ toString r = join
         ]
         ++ (map (Entity.toString 0) (Map.elems (entities r)))
         ++ ["Items"]
-        ++ (map Item.toString (Map.elems (items r)))
+        ++ (map (Item.toString 0) (Map.elems (items r)))
     )
 
 fromTemplate :: Map String EntityTemplate.EntityTemplate -> Map String ItemTemplate.ItemTemplate -> Map String Int -> RoomTemplate.RoomTemplate -> Room
