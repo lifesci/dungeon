@@ -2,7 +2,8 @@ module Lib (
     rev,
     listToMap,
     join,
-    applyTabs
+    applyTabs,
+    split
 ) where
 
 import Data.Map(Map)
@@ -29,4 +30,17 @@ join :: String -> [String] -> String
 join _ [] = ""
 join _ (x:[]) = x
 join i (x:xs) = x ++ i ++ (join i xs)
+
+splitTake :: Char -> String -> (String, String)
+splitTake char str = splitTake' char str [] where
+    splitTake' c [] acc = (acc, [])
+    splitTake' c (x:xs) acc = if x == c then (acc, xs) else splitTake' c xs (x:acc)
+
+split :: Char -> String -> [String]
+split c [] = []
+split c s =
+    let
+        (part, rem) = splitTake c s
+    in
+        if part == "" then split c rem else (rev part):(split c rem)
 
