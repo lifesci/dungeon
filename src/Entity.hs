@@ -37,16 +37,16 @@ toString :: Int -> Entity -> String
 toString t e = join
     "\n"
     (
-        [(show (eType e))]
+        (applyTabs [(show (eType e))] t)
         ++ (applyTabs [
             "Name: " ++ (name e),
             "Stats"
-        ] t)
-        ++ (applyTabs (statsToString (stats e)) (t+1))
-        ++ (applyTabs ["Actions"] t)
-        ++ (applyTabs (Map.keys (actions e)) (t+1))
-        ++ (applyTabs ["Items"] t)
-        ++ (itemsToString (t+1) (items e))
+        ] (t+1))
+        ++ (applyTabs (statsToString (stats e)) (t+2))
+        ++ (applyTabs ["Actions"] (t+1))
+        ++ (applyTabs (Map.keys (actions e)) (t+2))
+        ++ (applyTabs ["Items"] (t+1))
+        ++ (itemsToString (t+2) (items e))
     )
 
 fromTemplate :: Maybe EntityTemplate.EntityTemplate -> Map String Int -> RoomTemplateEntity.RoomTemplateEntity -> Entity.Entity

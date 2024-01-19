@@ -40,8 +40,8 @@ toString state t =
         join
             "\n"
             [
-                Entity.toString (t+1) (player state),
-                Room.toString (getCurrentRoom state)
+                Entity.toString t (player state),
+                Room.toString t (getCurrentRoom state)
             ]
     )
     ++ "\n"
