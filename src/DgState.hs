@@ -1,6 +1,7 @@
 module DgState (
     DgState(..),
     buildState,
+    runCmd,
     toString,
     updateGen,
     updateScopeAndGen,
@@ -17,7 +18,8 @@ import qualified Stat
 import qualified Dungeon
 import qualified Entity
 import qualified Room
-import qualified Scope as Scope
+import qualified Scope
+import qualified Command
 import Lib(listToMap, join)
 import System.Random(StdGen)
 import Data.Map(Map)
@@ -33,6 +35,12 @@ data DgState = DgState {
     running :: Bool,
     rng :: StdGen
 } deriving Show
+
+runCmd :: Maybe Command.Command -> DgState -> DgState
+runCmd Nothing s = s
+runCmd (Just cmd) s = case (Command.name cmd) of
+    "take" -> s
+    name -> s
 
 toString :: DgState -> Int -> String
 toString state t =
