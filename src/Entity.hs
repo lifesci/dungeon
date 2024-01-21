@@ -2,7 +2,8 @@ module Entity (
     Entity(..),
     fromTemplate,
     playerFromTemplate,
-    toString
+    toString,
+    takeItem
 ) where
 
 import qualified EntityTemplate
@@ -48,6 +49,18 @@ toString t e = join
         ++ (applyTabs ["Items"] (t+1))
         ++ (itemsToString (t+2) (items e))
     )
+
+takeItem :: Item.Item -> Entity -> Entity
+takeItem i e = Entity {
+    eType=(eType e),
+    name=(name e),
+    args=(args e),
+    stats=(stats e),
+    alive=(alive e),
+    actions=(actions e),
+    triggers=(triggers e),
+    items=(Map.insert (Item.name i) i (items e))
+}
 
 fromTemplate :: Maybe EntityTemplate.EntityTemplate -> Map String Int -> RoomTemplateEntity.RoomTemplateEntity -> Entity.Entity
 fromTemplate Nothing _ _ = error "Entity template not found"

@@ -20,6 +20,7 @@ import qualified Entity
 import qualified Room
 import qualified Scope
 import qualified Command
+import qualified Item
 import Lib(listToMap, join)
 import System.Random(StdGen)
 import Data.Map(Map)
@@ -39,8 +40,17 @@ data DgState = DgState {
 runCmd :: Maybe Command.Command -> DgState -> DgState
 runCmd Nothing s = s
 runCmd (Just cmd) s = case (Command.name cmd) of
-    "take" -> s
+    "take" -> runTakeCmd s cmd
     name -> s
+
+runTakeCmd :: DgState -> Command.Command -> DgState
+runTakeCmd s cmd =
+    let
+        (item, newRoom) = Room.takeItem (Command.target cmd) (getCurrentRoom s)
+    in
+        case item of
+            Nothing -> s
+            (Just i) -> takeItem i newRoom s
 
 toString :: DgState -> Int -> String
 toString state t =
@@ -145,6 +155,18 @@ setRunning newRunning state = DgState {
     player=(player state),
     rooms=(rooms state),
     running=newRunning,
+    rng=(rng state)
+}
+
+takeItem :: Item.Item -> Room.Room -> DgState -> DgState
+takeItem i r state = DgState {
+    currentRoom=(currentRoom state),
+    scope=(scope state),
+    source=(source state),
+    target=(target state),
+    player=(Entity.takeItem i (player state)),
+    rooms=(Map.insert (Room.name r) r (rooms state)),
+    running=(running state),
     rng=(rng state)
 }
 

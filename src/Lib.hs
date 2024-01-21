@@ -3,7 +3,8 @@ module Lib (
     listToMap,
     join,
     applyTabs,
-    split
+    split,
+    popMap
 ) where
 
 import Data.Map(Map)

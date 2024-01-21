@@ -1,4 +1,9 @@
-module Room(Room(..), fromTemplate, toString) where
+module Room(
+    Room(..),
+    fromTemplate,
+    toString,
+    takeItem
+) where
 
 import qualified Entity
 import qualified Item
@@ -8,7 +13,7 @@ import qualified RoomTemplate
 import qualified RoomTemplateEntity
 import qualified RoomTemplateItem
 import Door(Door)
-import Lib(listToMap, join, applyTabs)
+import Lib(listToMap, join, applyTabs, popMap)
 import Data.Map(Map)
 import qualified Data.Map as Map
 
@@ -61,4 +66,19 @@ fromTemplate etm itm sb rt = Room {
         id,
     doors=RoomTemplate.doors rt
 }
+
+updateItems :: Map String Item.Item -> Room -> Room
+updateItems i r = Room {
+    name=(name r),
+    entities=(entities r),
+    items=i,
+    doors=(doors r)
+}
+
+takeItem :: String -> Room -> (Maybe Item.Item, Room)
+takeItem s r =
+    let
+        (item, rest) = Lib.popMap s (items r)
+    in
+        (item, updateItems rest r)
 
