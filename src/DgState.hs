@@ -41,7 +41,7 @@ runCmd :: Maybe Command.Command -> DgState -> DgState
 runCmd Nothing s = s
 runCmd (Just cmd) s = case (Command.name cmd) of
     "take" -> runTakeCmd s cmd
-    name -> s
+    _ -> runActionCmd s cmd
 
 runTakeCmd :: DgState -> Command.Command -> DgState
 runTakeCmd s cmd =
@@ -51,6 +51,14 @@ runTakeCmd s cmd =
         case item of
             Nothing -> s
             (Just i) -> takeItem i newRoom s
+
+runActionCmd :: DgState -> Command.Command -> DgState
+runActionCmd s c =
+    let
+        target = Room.lookupEntity (Command.target c) (getCurrentRoom s)
+        action = Entity.lookupAction (Command.name c) (Command.using c)
+    in
+        s
 
 toString :: DgState -> Int -> String
 toString state t =

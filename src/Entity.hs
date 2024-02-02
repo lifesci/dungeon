@@ -3,7 +3,8 @@ module Entity (
     fromTemplate,
     playerFromTemplate,
     toString,
-    takeItem
+    takeItem,
+    lookupAction
 ) where
 
 import qualified EntityTemplate
@@ -26,6 +27,15 @@ data Entity = Entity {
     triggers :: Map String Trigger.Trigger,
     items :: Map String Item.Item
 } deriving Show
+
+lookupAction :: String -> Maybe String -> Entity -> Maybe Action.Action
+lookupAction name Nothing e = Map.lookup name (actions e)
+lookupAction name (Just item) e =
+    case
+        Map.lookup item (items e)
+    of
+        Nothing -> Nothing
+        (Just i) -> Map.lookup name (Item.actions i)
 
 statsToString :: Map String Int -> [String]
 statsToString m = map statToString (Map.assocs m) where

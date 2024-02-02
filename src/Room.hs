@@ -2,7 +2,8 @@ module Room(
     Room(..),
     fromTemplate,
     toString,
-    takeItem
+    takeItem,
+    lookupEntity
 ) where
 
 import qualified Entity
@@ -23,6 +24,9 @@ data Room = Room {
     items :: Map String Item.Item,
     doors :: [Door]
 } deriving Show
+
+lookupEntity :: String -> Room -> Maybe Entity.Entity
+lookupEntity name r = Map.lookup name (entities r)
 
 toString :: Int -> Room -> String
 toString t r = join
