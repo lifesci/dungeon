@@ -7,10 +7,12 @@ statblock {
 
 player me {
     stats {
-        hp = 1;
+        hp = 100;
     }
     alive = 1;
-    action test_action targets (a or b) {}
+    action test_action targets (a or b) {
+        source.hp = source.hp - 1;
+    }
     trigger test_trigger on (c or not d) {}
 }
 

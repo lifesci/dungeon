@@ -1,7 +1,6 @@
 module DgState (
     DgState(..),
     buildState,
-    runCmd,
     toString,
     updateGen,
     updateScopeAndGen,
@@ -10,7 +9,10 @@ module DgState (
     leaveScope,
     setRunning,
     getPropVal,
-    updateProp
+    updateProp,
+    getCurrentRoom,
+    takeItem,
+    updateSourceAndTarget
 ) where
 
 import Scope(Scope)
@@ -19,7 +21,6 @@ import qualified Dungeon
 import qualified Entity
 import qualified Room
 import qualified Scope
-import qualified Command
 import qualified Item
 import Lib(listToMap, join)
 import System.Random(StdGen)
@@ -36,29 +37,6 @@ data DgState = DgState {
     running :: Bool,
     rng :: StdGen
 } deriving Show
-
-runCmd :: Maybe Command.Command -> DgState -> DgState
-runCmd Nothing s = s
-runCmd (Just cmd) s = case (Command.name cmd) of
-    "take" -> runTakeCmd s cmd
-    _ -> runActionCmd s cmd
-
-runTakeCmd :: DgState -> Command.Command -> DgState
-runTakeCmd s cmd =
-    let
-        (item, newRoom) = Room.takeItem (Command.target cmd) (getCurrentRoom s)
-    in
-        case item of
-            Nothing -> s
-            (Just i) -> takeItem i newRoom s
-
-runActionCmd :: DgState -> Command.Command -> DgState
-runActionCmd s c =
-    let
-        target = Room.lookupEntity (Command.target c) (getCurrentRoom s)
-        action = Entity.lookupAction (Command.name c) (Command.using c)
-    in
-        s
 
 toString :: DgState -> Int -> String
 toString state t =
@@ -117,6 +95,12 @@ updateScopeAndGen scp gen state = DgState {
     running=(running state),
     rng=gen
 }
+
+updateSourceAndTarget :: String -> String -> DgState -> DgState
+updateSourceAndTarget s t state = state { source=(Just s), target=(Just t) }
+
+unsetSourceAndTarget :: String -> String -> DgState -> DgState
+unsetSourceAndTarget s t state = state { source=Nothing, target=Nothing }
 
 updateScope :: Scope -> DgState -> DgState
 updateScope scp state = DgState {
@@ -205,7 +189,7 @@ getPropFromOwner (Just enemy) name state = getPropFromEntity (getCurrentRoomEnti
 getPropVal :: Stat.Stat -> DgState -> Int
 getPropVal Stat.Stat{Stat.owner="source", Stat.name=name} state = getPropFromOwner (source state) name state
 getPropVal Stat.Stat{Stat.owner="target", Stat.name=name} state = getPropFromOwner (target state) name state
-getPropVal _ _ = error "Invalid property owner in update"
+getPropVal _ _ = error "Invalid property owner"
 
 updateEntityProp :: Maybe String -> String -> Int -> DgState -> DgState
 updateEntityProp Nothing _ _ _ = error "Property owner is undefined in update"

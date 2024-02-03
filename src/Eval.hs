@@ -1,9 +1,12 @@
-module Eval (evalStmt) where
+module Eval (runCmd) where
 
-import Scope(Scope)
 import qualified Scope as Scope
 import DgState(DgState)
-import qualified DgState as DgState
+import qualified DgState
+import qualified Entity
+import qualified Room
+import qualified Action
+import qualified Command
 import qualified Stmt
 import qualified Declare
 import qualified Assign
@@ -13,13 +16,41 @@ import qualified If
 import qualified Func
 import qualified Expr
 import qualified Dice
-import System.Random(StdGen, randomR)
 
 boolToInt :: Bool -> Int
 boolToInt x = if x then 1 else 0
 
 intToBool :: Int -> Bool
 intToBool x = x /= 0
+
+runCmd :: Maybe Command.Command -> DgState -> DgState
+runCmd Nothing s = s
+runCmd (Just cmd) s = case (Command.name cmd) of
+    "take" -> runTakeCmd s cmd
+    _ -> runActionCmd s cmd
+
+runTakeCmd :: DgState -> Command.Command -> DgState
+runTakeCmd s cmd =
+    let
+        (item, newRoom) = Room.takeItem (Command.target cmd) (DgState.getCurrentRoom s)
+    in
+        case item of
+            Nothing -> s
+            (Just i) -> DgState.takeItem i newRoom s
+
+runActionCmd :: DgState -> Command.Command -> DgState
+runActionCmd s c =
+    let
+        target = if ((Command.target c) == "player") then (Just (DgState.player s)) else (Room.lookupEntity (Command.target c) (DgState.getCurrentRoom s))
+        action = Entity.lookupAction (Command.name c) (Command.using c) (DgState.player s)
+    in
+        runActionCmd' s target action
+
+runActionCmd' :: DgState -> Maybe Entity.Entity -> Maybe Action.Action -> DgState
+runActionCmd' s Nothing _ = s
+runActionCmd' s _ Nothing = s
+runActionCmd' s (Just e) (Just a) = Eval.evalStmtBlock (Action.stmts a) (DgState.updateSourceAndTarget "player" (Entity.name e) s)
+
 
 evalStmtBlock :: [Stmt.Stmt] -> DgState -> DgState
 evalStmtBlock [] state = DgState.leaveScope state

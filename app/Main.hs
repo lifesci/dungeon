@@ -5,6 +5,7 @@ import Lexer(alexScanTokens)
 import DgState(DgState)
 import qualified DgState
 import qualified Command
+import qualified Eval
 import System.Random(newStdGen)
 
 main :: IO ()
@@ -19,5 +20,5 @@ run :: DgState -> IO ()
 run state = do
     putStr (DgState.toString state 0)
     cmd <- getLine
-    run (DgState.runCmd (Command.parse cmd) state)
+    run (Eval.runCmd (Command.parse cmd) state)
 
