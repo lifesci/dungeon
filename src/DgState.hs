@@ -96,8 +96,8 @@ updateScopeAndGen scp gen state = DgState {
     rng=gen
 }
 
-updateSourceAndTarget :: String -> String -> DgState -> DgState
-updateSourceAndTarget s t state = state { source=(Just s), target=(Just t) }
+updateSourceAndTarget :: Maybe String -> Maybe String -> DgState -> DgState
+updateSourceAndTarget s t state = state { source=s, target=t }
 
 unsetSourceAndTarget :: String -> String -> DgState -> DgState
 unsetSourceAndTarget s t state = state { source=Nothing, target=Nothing }

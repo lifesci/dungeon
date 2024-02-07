@@ -1,8 +1,10 @@
 module Eval (runCmd) where
 
+import qualified Data.Map as Map
 import qualified Scope as Scope
 import DgState(DgState)
 import qualified DgState
+import qualified Trigger
 import qualified Entity
 import qualified Room
 import qualified Action
@@ -44,13 +46,40 @@ runActionCmd s c =
         target = if ((Command.target c) == "player") then (Just (DgState.player s)) else (Room.lookupEntity (Command.target c) (DgState.getCurrentRoom s))
         action = Entity.lookupAction (Command.name c) (Command.using c) (DgState.player s)
     in
-        runActionCmd' s target action
+        runTriggers (runAction s target action) c target
 
-runActionCmd' :: DgState -> Maybe Entity.Entity -> Maybe Action.Action -> DgState
-runActionCmd' s Nothing _ = s
-runActionCmd' s _ Nothing = s
-runActionCmd' s (Just e) (Just a) = Eval.evalStmtBlock (Action.stmts a) (DgState.updateSourceAndTarget "player" (Entity.name e) s)
+runTriggers :: DgState -> Command.Command -> Maybe Entity.Entity -> DgState
+runTriggers s _ Nothing = s
+runTriggers s c (Just e) =
+    foldl
+        (runTrigger (Command.name c))
+        (DgState.updateSourceAndTarget (Just (Command.target c)) Nothing s)
+        (Map.elems (Entity.triggers e))
 
+runTrigger :: String -> DgState -> Trigger.Trigger -> DgState
+runTrigger a s t =
+    let
+        (cond, newState) =
+            evalBoolExpr
+                (Trigger.on t)
+                (DgState.updateScope (Scope.singletonWithDefault a 1 0) s)
+    in
+        if
+            cond
+        then
+            Eval.evalStmtBlock
+                (Trigger.stmts t)
+                newState
+        else
+            newState
+
+runAction :: DgState -> Maybe Entity.Entity -> Maybe Action.Action -> DgState
+runAction s Nothing _ = s
+runAction s _ Nothing = s
+runAction s (Just e) (Just a) =
+    Eval.evalStmtBlock
+        (Action.stmts a)
+        (DgState.updateSourceAndTarget (Just "player") (Just (Entity.name e)) s)
 
 evalStmtBlock :: [Stmt.Stmt] -> DgState -> DgState
 evalStmtBlock [] state = DgState.leaveScope state
@@ -135,6 +164,13 @@ gte x y = boolToInt (x >= y)
 
 lte :: Int -> Int -> Int
 lte x y = boolToInt (x <= y)
+
+evalBoolExpr :: Expr.Expr -> DgState -> (Bool, DgState)
+evalBoolExpr e s =
+    let
+        (val, state) = evalExpr e s
+    in
+        (intToBool val, state)
 
 evalExpr :: Expr.Expr -> DgState -> (Int, DgState)
 evalExpr (Expr.BinOpExpr op x y) state = let
