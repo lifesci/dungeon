@@ -62,7 +62,16 @@ runTrigger a s t =
         (cond, newState) =
             evalBoolExpr
                 (Trigger.on t)
-                (DgState.updateScope (Scope.singletonWithDefault a 1 0) s)
+                (
+                    DgState.updateScope
+                        (
+                            Scope.singletonWithDefault
+                                a
+                                (Expr.IntExpr 1)
+                                (Expr.IntExpr 0)
+                        )
+                        s
+                )
     in
         if
             cond
@@ -135,17 +144,15 @@ evalIf ((expr, stmts):xs) state =
 
 evalDeclare :: Declare.Declare -> DgState -> DgState
 evalDeclare d state =
-    let
-        (val, newState) = evalExpr (Declare.val d) state
-    in
-        DgState.updateScope (Scope.add (DgState.scope newState) (Declare.var d) val) newState
+    DgState.updateScope
+        (Scope.add (DgState.scope state) (Declare.var d) (Declare.val d))
+        state
 
 evalAssign :: Assign.Assign -> DgState -> DgState
 evalAssign a state =
-    let
-        (val, newState) = evalExpr (Assign.val a) state
-    in
-        DgState.updateScope (Scope.update (DgState.scope newState) (Assign.var a) val) newState
+    DgState.updateScope
+        (Scope.update (DgState.scope state) (Assign.var a) (Assign.val a))
+        state
 
 and' :: Int -> Int -> Int
 and' x y = boolToInt ((intToBool x) && intToBool y)
@@ -201,7 +208,8 @@ evalExpr (Expr.UnOpExpr op x) state =
             Expr.Neg -> (-(val), newState)
             Expr.Not -> (boolToInt (not (intToBool (val))), newState)
 evalExpr (Expr.IntExpr x) state = (x, state)
-evalExpr (Expr.VarExpr v) state = (Scope.lookup (DgState.scope state) v, state)
+evalExpr (Expr.VarExpr v) state =
+    let expr = Scope.lookup (DgState.scope state) v in evalExpr expr state
 evalExpr (Expr.StatExpr p) state = (DgState.getPropVal p state, state)
 evalExpr (Expr.DiceExpr d) state =
     let

@@ -26,14 +26,16 @@ source-repository head
 
 library
   exposed-modules:
+      Command
+      DgState
+      Entity
       Eval
+      Item
       Lexer
       Lib
       Parser
+      Room
       Scope
-      DgState
-      Command
-
       Action
       Assign
       AssignStat
@@ -44,22 +46,18 @@ library
       EntityTemplate
       Expr
       Func
+      If
+      InternalStmt
       ItemTemplate
       RoomTemplate
       RoomTemplateEntity
       RoomTemplateItem
       Stat
-      If
-      While
       Stmt
       Trigger
-
-      Entity
-      Item
-      Room
+      While
   other-modules:
       Paths_dungeon
-      InternalStmt
   autogen-modules:
       Paths_dungeon
   hs-source-dirs:
