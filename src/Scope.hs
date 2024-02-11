@@ -6,7 +6,8 @@ module Scope (
     push,
     parent,
     lookup,
-    singletonWithDefault
+    singletonWithDefault,
+    fromArgs
 ) where
 
 import Prelude hiding (lookup)
@@ -28,6 +29,9 @@ singleton var val = Scope (Cactus (Map.singleton var val) Nothing) Nothing
 
 singletonWithDefault :: String -> Expr.Expr -> Expr.Expr -> Scope
 singletonWithDefault var val d = Scope (Cactus (Map.singleton var val) Nothing) (Just d)
+
+fromArgs :: Map String Expr.Expr -> Scope
+fromArgs args = Scope (Cactus args Nothing) Nothing
 
 add :: Scope -> String -> Expr.Expr -> Scope
 add (Scope (Cactus vars p) d) var val =

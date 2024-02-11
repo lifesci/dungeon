@@ -12,7 +12,8 @@ module DgState (
     updateProp,
     getCurrentRoom,
     takeItem,
-    updateSourceAndTarget
+    updateSourceAndTarget,
+    updateSTS
 ) where
 
 import Scope(Scope)
@@ -96,11 +97,11 @@ updateScopeAndGen scp gen state = DgState {
     rng=gen
 }
 
+updateSTS :: Maybe String -> Maybe String -> Scope -> DgState -> DgState
+updateSTS src trgt scp state = state { source=src, target=trgt, scope=scp }
+
 updateSourceAndTarget :: Maybe String -> Maybe String -> DgState -> DgState
 updateSourceAndTarget s t state = state { source=s, target=t }
-
-unsetSourceAndTarget :: String -> String -> DgState -> DgState
-unsetSourceAndTarget s t state = state { source=Nothing, target=Nothing }
 
 updateScope :: Scope -> DgState -> DgState
 updateScope scp state = DgState {

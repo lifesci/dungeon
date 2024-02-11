@@ -1,5 +1,6 @@
 module Eval (runCmd) where
 
+import Data.Map(Map)
 import qualified Data.Map as Map
 import qualified Scope as Scope
 import DgState(DgState)
@@ -44,9 +45,9 @@ runActionCmd :: DgState -> Command.Command -> DgState
 runActionCmd s c =
     let
         target = if ((Command.target c) == "player") then (Just (DgState.player s)) else (Room.lookupEntity (Command.target c) (DgState.getCurrentRoom s))
-        action = Entity.lookupAction (Command.name c) (Command.using c) (DgState.player s)
+        (action, args) = Entity.lookupAction (Command.name c) (Command.using c) (DgState.player s)
     in
-        runTriggers (runAction s target action) c target
+        runTriggers (runAction s target action args) c target
 
 runTriggers :: DgState -> Command.Command -> Maybe Entity.Entity -> DgState
 runTriggers s _ Nothing = s
@@ -82,13 +83,13 @@ runTrigger a s t =
         else
             newState
 
-runAction :: DgState -> Maybe Entity.Entity -> Maybe Action.Action -> DgState
-runAction s Nothing _ = s
-runAction s _ Nothing = s
-runAction s (Just e) (Just a) =
+runAction :: DgState -> Maybe Entity.Entity -> Maybe Action.Action -> Map String Expr.Expr -> DgState
+runAction s Nothing _ _ = s
+runAction s _ Nothing _ = s
+runAction s (Just e) (Just a) args =
     Eval.evalStmtBlock
         (Action.stmts a)
-        (DgState.updateSourceAndTarget (Just "player") (Just (Entity.name e)) s)
+        (DgState.updateSTS (Just "player") (Just (Entity.name e)) (Scope.fromArgs args) s)
 
 evalStmtBlock :: [Stmt.Stmt] -> DgState -> DgState
 evalStmtBlock [] state = DgState.leaveScope state

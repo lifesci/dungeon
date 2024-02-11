@@ -28,14 +28,14 @@ data Entity = Entity {
     items :: Map String Item.Item
 } deriving Show
 
-lookupAction :: String -> Maybe String -> Entity -> Maybe Action.Action
-lookupAction name Nothing e = Map.lookup name (actions e)
-lookupAction name (Just item) e =
+lookupAction :: String -> Maybe String -> Entity -> (Maybe Action.Action, Map String Expr.Expr)
+lookupAction actionName Nothing e = (Map.lookup actionName (actions e), Map.empty)
+lookupAction actionName (Just item) e =
     case
         Map.lookup item (items e)
     of
-        Nothing -> Nothing
-        (Just i) -> Map.lookup name (Item.actions i)
+        Nothing -> (Nothing, Map.empty)
+        (Just i) -> (Map.lookup actionName (Item.actions i), Item.args i)
 
 statsToString :: Map String Int -> [String]
 statsToString m = map statToString (Map.assocs m) where
