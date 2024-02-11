@@ -25,26 +25,16 @@ enemy test_enemy() {
     trigger test_trigger on (c or not d) {}
 }
 
-item test_item<weapon>() {
+item test_item<weapon>(dmg) {
     action attack targets (entity) {
-        let dmg = 2d6;
         target.hp = target.hp - dmg;
-        if(1) {
-            dmg = 6;
-        } else if (2) {
-            dmg = 7;
-            dmg = 8;
-        } else {
-            dmg = 9;
-        }
-        take();
     }
 }
 
 room start {
     enemies {}
     items {
-        t1 = test_item();
+        t1 = test_item(1d6);
     }
     doors {
         door1 to test_room2;
