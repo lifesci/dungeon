@@ -14,6 +14,7 @@ import qualified RoomTemplate
 import qualified RoomTemplateEntity
 import qualified RoomTemplateItem
 import Door(Door)
+import qualified Door
 import Lib(listToMap, join, applyTabs, popMap)
 import Data.Map(Map)
 import qualified Data.Map as Map
@@ -22,7 +23,7 @@ data Room = Room {
     name :: String,
     entities :: Map String Entity.Entity,
     items :: Map String Item.Item,
-    doors :: [Door]
+    doors :: Map String Door
 } deriving Show
 
 lookupEntity :: String -> Room -> Maybe Entity.Entity
@@ -68,7 +69,7 @@ fromTemplate etm itm sb rt = Room {
         )
         Item.name
         id,
-    doors=RoomTemplate.doors rt
+    doors=(listToMap (RoomTemplate.doors rt) Door.name id)
 }
 
 updateItems :: Map String Item.Item -> Room -> Room

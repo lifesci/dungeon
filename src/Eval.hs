@@ -30,7 +30,11 @@ runCmd :: Maybe Command.Command -> DgState -> DgState
 runCmd Nothing s = s
 runCmd (Just cmd) s = case (Command.name cmd) of
     "take" -> runTakeCmd s cmd
+    "open" -> runOpenCmd s cmd
     _ -> runActionCmd s cmd
+
+runOpenCmd :: DgState -> Command.Command -> DgState
+runOpenCmd s c = s
 
 runTakeCmd :: DgState -> Command.Command -> DgState
 runTakeCmd s cmd =
@@ -54,7 +58,7 @@ runTriggers s _ Nothing = s
 runTriggers s c (Just e) =
     foldl
         (runTrigger (Command.name c))
-        (DgState.updateSourceAndTarget (Just (Command.target c)) Nothing s)
+        (DgState.updateSourceAndTarget (Just (Command.target c)) (Just "player") s)
         (Map.elems (Entity.triggers e))
 
 runTrigger :: String -> DgState -> Trigger.Trigger -> DgState
