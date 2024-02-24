@@ -13,7 +13,8 @@ module DgState (
     getCurrentRoom,
     takeItem,
     updateSourceAndTarget,
-    updateSTS
+    updateSTS,
+    getDoor
 ) where
 
 import Scope(Scope)
@@ -23,6 +24,7 @@ import qualified Entity
 import qualified Room
 import qualified Scope
 import qualified Item
+import qualified Door
 import Lib(listToMap, join)
 import System.Random(StdGen)
 import Data.Map(Map)
@@ -261,4 +263,7 @@ updateProp :: Stat.Stat -> Int -> DgState -> DgState
 updateProp Stat.Stat{Stat.owner="source", Stat.name=name} val state = updateEntityProp (source state) name val state
 updateProp Stat.Stat{Stat.owner="target", Stat.name=name} val state = updateEntityProp (target state) name val state
 updateProp _ _ _ = error "Invalid property owner in assign"
+
+getDoor :: String -> DgState -> Maybe Door.Door
+getDoor name s = Room.getDoor name (getCurrentRoom s)
 

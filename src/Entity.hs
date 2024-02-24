@@ -14,8 +14,12 @@ import qualified Action
 import qualified Trigger
 import qualified Item
 import Lib(join, applyTabs)
+import Scope(Scope)
+import qualified Scope as Scope
 import Data.Map(Map)
 import qualified Data.Map as Map
+import Data.Set(Set)
+import qualified Data.Set as Set
 
 data Entity = Entity {
     eType :: EntityTemplate.EntityType,
@@ -106,4 +110,10 @@ playerFromTemplate t statblock = Entity {
 statsFromTemplate :: EntityTemplate.EntityTemplate -> Map String Int -> Map String Int
 statsFromTemplate t statblock =
     Map.union (Map.intersection (EntityTemplate.stats t) statblock) statblock
+
+allItemAttribs :: Entity -> [String]
+allItemAttribs e = Set.elems (foldl Set.union Set.empty (map Item.attribs (Map.elems (items e))))
+
+itemAttribsToScope :: Entity -> Scope
+itemAttribsToScope e = foldl Scope.addTrue Scope.emptyWithFalseDefault (allItemAttribs e)
 

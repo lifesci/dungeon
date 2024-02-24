@@ -8,6 +8,7 @@ import qualified DgState
 import qualified Trigger
 import qualified Entity
 import qualified Room
+import qualified Door
 import qualified Action
 import qualified Command
 import qualified Stmt
@@ -34,7 +35,15 @@ runCmd (Just cmd) s = case (Command.name cmd) of
     _ -> runActionCmd s cmd
 
 runOpenCmd :: DgState -> Command.Command -> DgState
-runOpenCmd s c = s
+runOpenCmd s c =
+    case
+        DgState.getDoor (Command.target c) s
+    of
+        Nothing -> s
+        (Just d) -> tryOpenDoor d s
+
+tryOpenDoor :: Door.Door -> DgState -> DgState
+tryOpenDoor d s = s
 
 runTakeCmd :: DgState -> Command.Command -> DgState
 runTakeCmd s cmd =

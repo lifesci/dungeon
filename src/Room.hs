@@ -3,7 +3,8 @@ module Room(
     fromTemplate,
     toString,
     takeItem,
-    lookupEntity
+    lookupEntity,
+    getDoor
 ) where
 
 import qualified Entity
@@ -86,4 +87,7 @@ takeItem s r =
         (item, rest) = Lib.popMap s (items r)
     in
         (item, updateItems rest r)
+
+getDoor :: String -> Room -> Maybe Door
+getDoor name room = Map.lookup name (doors room)
 

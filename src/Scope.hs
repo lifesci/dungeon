@@ -2,12 +2,14 @@ module Scope (
     Scope,
     empty,
     add,
+    addTrue,
     update,
     push,
     parent,
     lookup,
     singletonWithDefault,
-    fromArgs
+    fromArgs,
+    emptyWithFalseDefault
 ) where
 
 import Prelude hiding (lookup)
@@ -24,6 +26,12 @@ empty = Scope (Cactus Map.empty Nothing) Nothing
 emptyWithDefault :: Expr.Expr -> Scope
 emptyWithDefault d = Scope (Cactus Map.empty Nothing) (Just d)
 
+emptyWithFalseDefault :: Scope
+emptyWithFalseDefault = emptyWithDefault (Expr.IntExpr 0)
+
+emptyWithTrueDefault :: Expr.Expr -> Scope
+emptyWithTrueDefault d = emptyWithDefault (Expr.IntExpr 1)
+
 singleton :: String -> Expr.Expr -> Scope
 singleton var val = Scope (Cactus (Map.singleton var val) Nothing) Nothing
 
@@ -37,6 +45,12 @@ add :: Scope -> String -> Expr.Expr -> Scope
 add (Scope (Cactus vars p) d) var val =
     Scope
         (Cactus (Map.insert var val vars) p)
+        d
+
+addTrue :: Scope -> String -> Scope
+addTrue (Scope (Cactus vars p) d) var =
+    Scope
+        (Cactus (Map.insert var (Expr.IntExpr 1) vars) p)
         d
 
 update' :: Cactus -> String -> Expr.Expr -> Cactus
