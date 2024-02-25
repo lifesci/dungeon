@@ -14,6 +14,7 @@ module DgState (
     takeItem,
     updateSourceAndTarget,
     updateSTS,
+    updateCurrentRoom,
     getDoor
 ) where
 
@@ -116,6 +117,9 @@ updateScope scp state = DgState {
     running=(running state),
     rng=(rng state)
 }
+
+updateCurrentRoom :: String -> DgState -> DgState
+updateCurrentRoom room state = state { currentRoom=room }
 
 enterScope :: DgState -> DgState
 enterScope state = DgState {

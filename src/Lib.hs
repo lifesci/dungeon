@@ -2,6 +2,7 @@ module Lib (
     rev,
     listToMap,
     join,
+    applyTab,
     applyTabs,
     split,
     popMap
@@ -28,7 +29,10 @@ tab n
     | otherwise = ' ':(tab (n-1))
 
 applyTabs :: [String] -> Int  -> [String]
-applyTabs sl t = map (\s -> (tab t) ++ s) sl
+applyTabs sl t = map (\s -> applyTab s t) sl
+
+applyTab :: String -> Int  -> String
+applyTab s t = (tab t) ++ s
 
 join :: String -> [String] -> String
 join _ [] = ""

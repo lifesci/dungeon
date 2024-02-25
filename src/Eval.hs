@@ -43,7 +43,17 @@ runOpenCmd s c =
         (Just d) -> tryOpenDoor d s
 
 tryOpenDoor :: Door.Door -> DgState -> DgState
-tryOpenDoor d s = s
+tryOpenDoor d s =
+    let
+        (result, newState) =
+            evalBoolExpr (Door.req d) (DgState.updateScope (Entity.itemAttribsToScope (DgState.player s)) s)
+    in
+        if
+            result
+        then
+            DgState.updateCurrentRoom (Door.to d) newState
+        else
+            newState
 
 runTakeCmd :: DgState -> Command.Command -> DgState
 runTakeCmd s cmd =

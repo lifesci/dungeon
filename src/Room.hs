@@ -40,6 +40,7 @@ toString t r = join
         ++ (map (Entity.toString (t+2)) (Map.elems (entities r)))
         ++ (applyTabs ["Items"] (t+1))
         ++ (map (Item.toString (t+2)) (Map.elems (items r)))
+        ++ (map (Door.toString (t+1)) (Map.elems (doors r)))
     )
 
 fromTemplate :: Map String EntityTemplate.EntityTemplate -> Map String ItemTemplate.ItemTemplate -> Map String Int -> RoomTemplate.RoomTemplate -> Room

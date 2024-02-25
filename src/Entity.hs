@@ -4,7 +4,8 @@ module Entity (
     playerFromTemplate,
     toString,
     takeItem,
-    lookupAction
+    lookupAction,
+    itemAttribsToScope
 ) where
 
 import qualified EntityTemplate
