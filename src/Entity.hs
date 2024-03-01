@@ -5,7 +5,8 @@ module Entity (
     toString,
     takeItem,
     lookupAction,
-    itemAttribsToScope
+    itemAttribsToScope,
+    getTriggers
 ) where
 
 import qualified EntityTemplate
@@ -61,6 +62,8 @@ toString t e = join
         ++ (applyTabs (statsToString (stats e)) (t+2))
         ++ (applyTabs ["Actions"] (t+1))
         ++ (applyTabs (Map.keys (actions e)) (t+2))
+        ++ (applyTabs ["Triggers"] (t+1))
+        ++ (applyTabs (Map.keys (triggers e)) (t+2))
         ++ (applyTabs ["Items"] (t+1))
         ++ (itemsToString (t+2) (items e))
     )
@@ -117,4 +120,15 @@ allItemAttribs e = Set.elems (foldl Set.union Set.empty (map Item.attribs (Map.e
 
 itemAttribsToScope :: Entity -> Scope
 itemAttribsToScope e = foldl Scope.addTrue Scope.emptyWithFalseDefault (allItemAttribs e)
+
+getTriggers :: Entity -> [Trigger.Trigger]
+getTriggers e =
+    (Map.elems (triggers e))
+    ++ (
+        foldl
+            (++)
+            []
+            (map (Map.elems . Item.triggers) (Map.elems (items e))
+        )
+    )
 

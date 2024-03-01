@@ -78,7 +78,7 @@ runTriggers s c (Just e) =
     foldl
         (runTrigger (Command.name c))
         (DgState.updateSourceAndTarget (Just (Command.target c)) (Just "player") s)
-        (Map.elems (Entity.triggers e))
+        (Entity.getTriggers e)
 
 runTrigger :: String -> DgState -> Trigger.Trigger -> DgState
 runTrigger a s t =

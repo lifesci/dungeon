@@ -145,12 +145,13 @@ ItemList
     | ItemList Item { $2 : $1 }
 
 Item
-    : item id '<' IdList '>' '(' IdList ')' '{' ActionList '}' {
+    : item id '<' IdList '>' '(' IdList ')' '{' ActionList TriggerList'}' {
         ItemTemplate.ItemTemplate {
             ItemTemplate.name=$2,
             ItemTemplate.attribs=(rev $4),
             ItemTemplate.args=(rev $7),
-            ItemTemplate.actions=(listToMap (rev $10) Action.name id)
+            ItemTemplate.actions=(listToMap (rev $10) Action.name id),
+            ItemTemplate.triggers=(listToMap (rev $11) Trigger.name id)
         }
     }
 
