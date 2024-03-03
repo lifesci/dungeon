@@ -84,6 +84,8 @@ import qualified Stat
     room { TRoom }
     game { TGame }
     alive { TAlive }
+    behaviour { TBehaviour }
+    default { TDefault }
 -- Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
 %%
 
@@ -245,6 +247,20 @@ Trigger: trigger id on '(' Expr ')' '{' StmtList '}' {
         Trigger.stmts=(rev $8)
     }
 }
+
+Behaviour: behaviour '{' BehaviourList DefaultBehaviour '}' {}
+
+BehaviourList
+    : {- empty -} { [] }
+    | BehaviourList BehaviourItem { $2 : $1 }
+
+BehaviourItem: Expr '=' BehaviourCommand ';' { ($1, (rev $3)) }
+
+BehaviourCommand
+    : id { [$1] }
+    | BehaviourCommand id { $2:$1 }
+
+DefaultBehaviour: default '=' BehaviourCommand ';' { ($1, (rev $3) }
 
 Stmt
     : let id '=' Expr ';' { Stmt.DeclareStmt Declare.Declare { Declare.var=$2, Declare.val=$4 } }

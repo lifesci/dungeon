@@ -62,6 +62,8 @@ tokens :-
     "room" { \_ -> TRoom }
     "game" { \_ -> TGame }
     "alive" { \_ -> TAlive }
+    "behaviour" { \_ -> TBehaviour }
+    "default" { \_ -> TDefault }
 
     @int { \s -> TInt (read s) }
     @id { \s -> TId s }
@@ -122,6 +124,8 @@ data Token
     | TRoom
     | TGame
     | TAlive
+    | TDefault
+    | TBehaviour
 
     deriving (Eq, Show)
 }
