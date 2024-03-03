@@ -23,6 +23,11 @@ enemy test_enemy() {
     alive = 1;
     action test_action targets (a or b) {}
     trigger test_trigger on (c or not d) {}
+
+    behaviour {
+        hp < 5 = heal self;
+        default = test_action player;
+    }
 }
 
 item test_item<weapon>(dmg) {
