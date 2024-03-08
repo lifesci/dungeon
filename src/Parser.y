@@ -6,6 +6,7 @@ import Lib(rev, listToMap)
 import Data.Map(Map)
 import qualified Data.Map as Map
 import Data.Set(Set)
+import qualified Command
 import qualified Data.Set as Set
 import qualified Dungeon
 import qualified EntityTemplate
@@ -121,7 +122,8 @@ Player
             EntityTemplate.stats=(Map.fromList (rev $6)),
             EntityTemplate.alive=$8,
             EntityTemplate.actions=(listToMap (rev $9) Action.name id),
-            EntityTemplate.triggers=(listToMap (rev $10) Trigger.name id)
+            EntityTemplate.triggers=(listToMap (rev $10) Trigger.name id),
+            EntityTemplate.behaviour=[]
         }
     }
 
@@ -130,7 +132,7 @@ EnemyList
     | EnemyList Enemy { $2 : $1 }
 
 Enemy
-    : enemy id '(' IdList ')' '{' stats '{' StatList '}' Alive ActionList TriggerList '}' {
+    : enemy id '(' IdList ')' '{' stats '{' StatList '}' Alive ActionList TriggerList Behaviour '}' {
         EntityTemplate.EntityTemplate {
             EntityTemplate.eType = EntityTemplate.Enemy,
             EntityTemplate.name=$2,
@@ -138,7 +140,8 @@ Enemy
             EntityTemplate.stats=(Map.fromList (rev $9)),
             EntityTemplate.alive=$11,
             EntityTemplate.actions=(listToMap (rev $12) Action.name id),
-            EntityTemplate.triggers=(listToMap (rev $13) Trigger.name id)
+            EntityTemplate.triggers=(listToMap (rev $13) Trigger.name id),
+            EntityTemplate.behaviour=$14
         }
     }
 
@@ -248,19 +251,19 @@ Trigger: trigger id on '(' Expr ')' '{' StmtList '}' {
     }
 }
 
-Behaviour: behaviour '{' BehaviourList DefaultBehaviour '}' {}
+Behaviour: behaviour '{' BehaviourList DefaultBehaviour '}' { (rev $3) ++ [$4] }
 
 BehaviourList
     : {- empty -} { [] }
     | BehaviourList BehaviourItem { $2 : $1 }
 
-BehaviourItem: Expr '=' BehaviourCommand ';' { ($1, (rev $3)) }
+BehaviourItem: Expr '=' BehaviourCommand ';' { ($1, $3) }
+
+DefaultBehaviour: default '=' BehaviourCommand ';' { (Expr.IntExpr 1, $3) }
 
 BehaviourCommand
-    : id { [$1] }
-    | BehaviourCommand id { $2:$1 }
-
-DefaultBehaviour: default '=' BehaviourCommand ';' { ($1, (rev $3) }
+    : id id { Command.Command { Command.name=$1, Command.target=$2, Command.using=Nothing } }
+    | id player { Command.Command { Command.name=$1, Command.target="player", Command.using=Nothing } }
 
 Stmt
     : let id '=' Expr ';' { Stmt.DeclareStmt Declare.Declare { Declare.var=$2, Declare.val=$4 } }

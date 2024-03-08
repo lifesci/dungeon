@@ -15,6 +15,7 @@ import qualified Expr
 import qualified Action
 import qualified Trigger
 import qualified Item
+import qualified Command
 import Lib(join, applyTabs)
 import Scope(Scope)
 import qualified Scope as Scope
@@ -31,7 +32,8 @@ data Entity = Entity {
     alive :: Expr.Expr,
     actions :: Map String Action.Action,
     triggers :: Map String Trigger.Trigger,
-    items :: Map String Item.Item
+    items :: Map String Item.Item,
+    behaviour :: [(Expr.Expr, Command.Command)]
 } deriving Show
 
 lookupAction :: String -> Maybe String -> Entity -> (Maybe Action.Action, Map String Expr.Expr)
@@ -96,7 +98,8 @@ fromTemplate (Just t) statblock rte = Entity {
     alive=(EntityTemplate.alive t),
     actions=(EntityTemplate.actions t),
     triggers=(EntityTemplate.triggers t),
-    items=Map.empty
+    items=Map.empty,
+    behaviour=(EntityTemplate.behaviour t)
 }
 
 playerFromTemplate :: EntityTemplate.EntityTemplate -> Map String Int -> Entity.Entity
@@ -108,7 +111,8 @@ playerFromTemplate t statblock = Entity {
     alive=(EntityTemplate.alive t),
     actions=(EntityTemplate.actions t),
     triggers=(EntityTemplate.triggers t),
-    items=Map.empty
+    items=Map.empty,
+    behaviour=[]
 }
 
 statsFromTemplate :: EntityTemplate.EntityTemplate -> Map String Int -> Map String Int

@@ -4,6 +4,7 @@ import Data.Map(Map)
 import Expr(Expr)
 import Action(Action)
 import Trigger(Trigger)
+import Command(Command)
 
 data EntityType = Player | Enemy deriving Show
 
@@ -14,5 +15,6 @@ data EntityTemplate = EntityTemplate {
     stats :: Map String Int,
     alive :: Expr,
     actions :: Map String Action,
-    triggers :: Map String Trigger
+    triggers :: Map String Trigger,
+    behaviour :: [(Expr, Command)]
 } deriving Show
