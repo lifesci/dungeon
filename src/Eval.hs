@@ -27,6 +27,77 @@ boolToInt x = if x then 1 else 0
 intToBool :: Int -> Bool
 intToBool x = x /= 0
 
+isDead :: Entity.Entity -> DgState -> (Bool, DgState)
+isDead e s = evalBoolExpr (Entity.alive e) (DgState.updateScope (Entity.statsToScope e) s)
+
+checkPlayerDeath :: DgState -> DgState
+checkPlayerDeath s =
+    let
+        (dead, newState) = isDead (DgState.player s) s
+    in
+        if
+            dead
+        then
+            DgState.setRunning False newState
+        else
+            newState
+
+checkEntityDeath :: DgState -> Entity.Entity -> DgState
+checkEntityDeath s e =
+    let
+        (dead, newState) = isDead e s
+    in
+        if
+            dead
+        then
+            DgState.removeEntity (Entity.name e) newState
+        else
+            newState
+
+checkAllEntityDeath :: DgState -> DgState
+checkAllEntityDeath s = foldl checkEntityDeath s (DgState.getEntities s)
+
+checkDeath :: DgState -> DgState
+checkDeath s = checkAllEntityDeath (checkPlayerDeath s)
+
+runNpcs :: DgState -> DgState
+runNpcs s =
+    let
+        nameList = DgState.getEntityNames s
+    in
+        foldl runNpcAndCheckDeath s nameList
+
+runNpcAndCheckDeath :: DgState -> String -> DgState
+runNpcAndCheckDeath s name = checkDeath (runNpc (DgState.lookupEntity name s) s)
+
+runNpc :: Maybe Entity.Entity -> DgState -> DgState
+runNpc Nothing s = s
+runNpc (Just e) s =
+    let
+        (cmd, newState) = getNpcBehaviour e s
+    in
+        runCmd (Entity.name e) (Just cmd) newState
+
+getNpcBehaviour :: Entity.Entity -> DgState -> (Command.Command, DgState)
+getNpcBehaviour e s =
+    getCommand
+        (Entity.behaviour e)
+        (Entity.defaultBehaviour e)
+        (DgState.updateScope (Entity.statsToScope e) s)
+
+getCommand :: [(Expr.Expr, Command.Command)] -> Command.Command -> DgState -> (Command.Command, DgState)
+getCommand [] db s = (db, s)
+getCommand ((expr, cmd):xs) db s =
+    let
+        (result, newState) = evalBoolExpr expr s
+    in
+        if
+            result
+        then
+            (cmd, newState)
+        else
+            getCommand xs db newState
+
 runCmd :: String -> Maybe Command.Command -> DgState -> DgState
 rumCmd _ Nothing s = s
 runCmd src (Just cmd) s =

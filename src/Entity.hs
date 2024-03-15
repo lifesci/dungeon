@@ -6,6 +6,7 @@ module Entity (
     takeItem,
     lookupAction,
     itemAttribsToScope,
+    statsToScope,
     getTriggers
 ) where
 
@@ -33,7 +34,8 @@ data Entity = Entity {
     actions :: Map String Action.Action,
     triggers :: Map String Trigger.Trigger,
     items :: Map String Item.Item,
-    behaviour :: [(Expr.Expr, Command.Command)]
+    behaviour :: [(Expr.Expr, Command.Command)],
+    defaultBehaviour :: Command.Command
 } deriving Show
 
 lookupAction :: String -> Maybe String -> Maybe Entity -> (Maybe Action.Action, Map String Expr.Expr)
@@ -100,7 +102,8 @@ fromTemplate (Just t) statblock rte = Entity {
     actions=(EntityTemplate.actions t),
     triggers=(EntityTemplate.triggers t),
     items=Map.empty,
-    behaviour=(EntityTemplate.behaviour t)
+    behaviour=(EntityTemplate.behaviour t),
+    defaultBehaviour=(EntityTemplate.defaultBehaviour t)
 }
 
 playerFromTemplate :: EntityTemplate.EntityTemplate -> Map String Int -> Entity.Entity
@@ -113,7 +116,8 @@ playerFromTemplate t statblock = Entity {
     actions=(EntityTemplate.actions t),
     triggers=(EntityTemplate.triggers t),
     items=Map.empty,
-    behaviour=[]
+    behaviour=[],
+    defaultBehaviour=Command.empty
 }
 
 statsFromTemplate :: EntityTemplate.EntityTemplate -> Map String Int -> Map String Int
@@ -125,6 +129,9 @@ allItemAttribs e = Set.elems (foldl Set.union Set.empty (map Item.attribs (Map.e
 
 itemAttribsToScope :: Entity -> Scope
 itemAttribsToScope e = foldl Scope.addTrue Scope.emptyWithFalseDefault (allItemAttribs e)
+
+statsToScope :: Entity -> Scope
+statsToScope e = Scope.fromIntArgs (stats e)
 
 getTriggers :: Entity -> [Trigger.Trigger]
 getTriggers e =

@@ -133,16 +133,20 @@ EnemyList
 
 Enemy
     : enemy id '(' IdList ')' '{' stats '{' StatList '}' Alive ActionList TriggerList Behaviour '}' {
-        EntityTemplate.EntityTemplate {
-            EntityTemplate.eType = EntityTemplate.Enemy,
-            EntityTemplate.name=$2,
-            EntityTemplate.args=(rev $4),
-            EntityTemplate.stats=(Map.fromList (rev $9)),
-            EntityTemplate.alive=$11,
-            EntityTemplate.actions=(listToMap (rev $12) Action.name id),
-            EntityTemplate.triggers=(listToMap (rev $13) Trigger.name id),
-            EntityTemplate.behaviour=$14
-        }
+        let
+            (behaviour, defaultBehaviour) = $14
+        in
+            EntityTemplate.EntityTemplate {
+                EntityTemplate.eType = EntityTemplate.Enemy,
+                EntityTemplate.name=$2,
+                EntityTemplate.args=(rev $4),
+                EntityTemplate.stats=(Map.fromList (rev $9)),
+                EntityTemplate.alive=$11,
+                EntityTemplate.actions=(listToMap (rev $12) Action.name id),
+                EntityTemplate.triggers=(listToMap (rev $13) Trigger.name id),
+                EntityTemplate.behaviour=behaviour,
+                EntityTemplate.defaultBehaviour=defaultBehaviour
+            }
     }
 
 ItemList
@@ -251,7 +255,7 @@ Trigger: trigger id on '(' Expr ')' '{' StmtList '}' {
     }
 }
 
-Behaviour: behaviour '{' BehaviourList DefaultBehaviour '}' { (rev $3) ++ [$4] }
+Behaviour: behaviour '{' BehaviourList DefaultBehaviour '}' { ((rev $3), $4) }
 
 BehaviourList
     : {- empty -} { [] }
@@ -259,7 +263,7 @@ BehaviourList
 
 BehaviourItem: Expr '=' BehaviourCommand ';' { ($1, $3) }
 
-DefaultBehaviour: default '=' BehaviourCommand ';' { (Expr.IntExpr 1, $3) }
+DefaultBehaviour: default '=' BehaviourCommand ';' { $3 }
 
 BehaviourCommand
     : id id { Command.Command { Command.name=$1, Command.target=$2, Command.using=Nothing } }

@@ -9,6 +9,7 @@ module Scope (
     lookup,
     singletonWithDefault,
     fromArgs,
+    fromIntArgs,
     emptyWithFalseDefault
 ) where
 
@@ -40,6 +41,9 @@ singletonWithDefault var val d = Scope (Cactus (Map.singleton var val) Nothing) 
 
 fromArgs :: Map String Expr.Expr -> Scope
 fromArgs args = Scope (Cactus args Nothing) Nothing
+
+fromIntArgs :: Map String Int -> Scope
+fromIntArgs args = fromArgs (Map.map (\x -> Expr.IntExpr x) args)
 
 add :: Scope -> String -> Expr.Expr -> Scope
 add (Scope (Cactus vars p) d) var val =

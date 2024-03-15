@@ -4,7 +4,10 @@ module Room(
     toString,
     takeItem,
     lookupEntity,
-    getDoor
+    getDoor,
+    getEntityNames,
+    getEntities,
+    removeEntity
 ) where
 
 import qualified Entity
@@ -91,4 +94,13 @@ takeItem s r =
 
 getDoor :: String -> Room -> Maybe Door
 getDoor name room = Map.lookup name (doors room)
+
+getEntityNames :: Room -> [String]
+getEntityNames r = map (\(x, _) -> x) (Map.toList (entities r))
+
+getEntities :: Room -> [Entity.Entity]
+getEntities r = map (\(_, y) -> y) (Map.toList (entities r))
+
+removeEntity :: String -> Room -> Room
+removeEntity name r = r { entities=Map.delete name (entities r) }
 

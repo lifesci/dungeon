@@ -17,8 +17,12 @@ module DgState (
     swapSourceAndTarget,
     updateCurrentRoom,
     getDoor,
+    lookupEntity,
     lookupSource,
-    lookupTarget
+    lookupTarget,
+    getEntityNames,
+    getEntities,
+    removeEntity
 ) where
 
 import Scope(Scope)
@@ -284,4 +288,13 @@ lookupSource s = lookupEntity (source s) s
 
 lookupTarget :: DgState -> Maybe Entity.Entity
 lookupTarget s = lookupEntity (target s) s
+
+getEntityNames :: DgState -> [String]
+getEntityNames s = Room.getEntityNames (getCurrentRoom s)
+
+getEntities :: DgState -> [Entity.Entity]
+getEntities s = Room.getEntities (getCurrentRoom s)
+
+removeEntity :: String -> DgState -> DgState
+removeEntity name s = s { rooms=Map.insert (currentRoom s) (Room.removeEntity name (getCurrentRoom s)) (rooms s) }
 

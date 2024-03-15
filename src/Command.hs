@@ -1,6 +1,7 @@
 module Command (
     Command(..),
-    parse
+    parse,
+    empty
 ) where
 
 import Lib(split)
@@ -16,4 +17,7 @@ parse str = parse' (split ' ' str) where
     parse' (s:t:[]) = Just (Command { name=s, target=t, using=Nothing })
     parse' (s:t:"using":i:[]) = Just (Command { name=s, target=t, using=(Just i) })
     parse' _ = Nothing
+
+empty :: Command
+empty = Command { name="", target="", using=Nothing }
 

@@ -16,5 +16,6 @@ data EntityTemplate = EntityTemplate {
     alive :: Expr,
     actions :: Map String Action,
     triggers :: Map String Trigger,
-    behaviour :: [(Expr, Command)]
+    behaviour :: [(Expr, Command)],
+    defaultBehaviour :: Command
 } deriving Show
