@@ -14,6 +14,7 @@ module DgState (
     takeItem,
     updateSourceAndTarget,
     updateSTS,
+    swapSourceAndTarget,
     updateCurrentRoom,
     getDoor
 ) where
@@ -34,8 +35,8 @@ import qualified Data.Map as Map
 data DgState = DgState {
     currentRoom :: String,
     scope :: Scope,
-    source :: Maybe String,
-    target :: Maybe String,
+    source :: String,
+    target :: String,
     player :: Entity.Entity,
     rooms :: Map String Room.Room,
     running :: Bool,
@@ -58,8 +59,8 @@ buildState :: StdGen -> Dungeon.Dungeon -> DgState
 buildState gen dgn = DgState {
     currentRoom="start",
     scope=Scope.empty,
-    source=Nothing,
-    target=Nothing,
+    source="",
+    target="",
     player=Entity.playerFromTemplate (Dungeon.playerTemplate dgn) (Dungeon.statblock dgn),
     rooms=listToMap
         (
@@ -100,11 +101,14 @@ updateScopeAndGen scp gen state = DgState {
     rng=gen
 }
 
-updateSTS :: Maybe String -> Maybe String -> Scope -> DgState -> DgState
+updateSTS :: String -> String -> Scope -> DgState -> DgState
 updateSTS src trgt scp state = state { source=src, target=trgt, scope=scp }
 
-updateSourceAndTarget :: Maybe String -> Maybe String -> DgState -> DgState
+updateSourceAndTarget :: String -> String -> DgState -> DgState
 updateSourceAndTarget s t state = state { source=s, target=t }
+
+swapSourceAndTarget :: DgState -> DgState
+swapSourceAndTarget state = state { source=DgState.target state, target=DgState.source state }
 
 updateScope :: Scope -> DgState -> DgState
 updateScope scp state = DgState {
@@ -188,19 +192,17 @@ getPropFromEntity entity prop = case Map.lookup prop (Entity.stats entity) of
     Nothing -> error "Unable to locate entity prop"
     (Just x) -> x
 
-getPropFromOwner :: Maybe String -> String -> DgState -> Int
-getPropFromOwner Nothing _ _ = error "Property owner is undefined"
-getPropFromOwner (Just "player") name state = getPropFromEntity (player state) name
-getPropFromOwner (Just enemy) name state = getPropFromEntity (getCurrentRoomEntity enemy state) name
+getPropFromOwner :: String -> String -> DgState -> Int
+getPropFromOwner "player" name state = getPropFromEntity (player state) name
+getPropFromOwner enemy name state = getPropFromEntity (getCurrentRoomEntity enemy state) name
 
 getPropVal :: Stat.Stat -> DgState -> Int
 getPropVal Stat.Stat{Stat.owner="source", Stat.name=name} state = getPropFromOwner (source state) name state
 getPropVal Stat.Stat{Stat.owner="target", Stat.name=name} state = getPropFromOwner (target state) name state
 getPropVal _ _ = error "Invalid property owner"
 
-updateEntityProp :: Maybe String -> String -> Int -> DgState -> DgState
-updateEntityProp Nothing _ _ _ = error "Property owner is undefined in update"
-updateEntityProp (Just "player") name val state =
+updateEntityProp :: String -> String -> Int -> DgState -> DgState
+updateEntityProp "player" name val state =
     let p = (player state) in
         DgState {
             currentRoom=(currentRoom state),
@@ -221,7 +223,7 @@ updateEntityProp (Just "player") name val state =
             running=(running state),
             rng=(rng state)
         }
-updateEntityProp (Just enemy) name val state =
+updateEntityProp enemy name val state =
     let
         entity = getCurrentRoomEntity enemy state
         curRoom = getCurrentRoom state
@@ -270,4 +272,8 @@ updateProp _ _ _ = error "Invalid property owner in assign"
 
 getDoor :: String -> DgState -> Maybe Door.Door
 getDoor name s = Room.getDoor name (getCurrentRoom s)
+
+lookupEntity :: String -> DgState -> Maybe Entity.Entity
+lookupEntity "player" s = Just (player s)
+lookupEntity name s = Room.lookupEntity name (getCurrentRoom s)
 

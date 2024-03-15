@@ -20,5 +20,5 @@ run :: DgState -> IO ()
 run state = do
     putStr (DgState.toString state 0)
     cmd <- getLine
-    run (Eval.runCmd (Command.parse cmd) state)
+    run (Eval.runCmd "player" (Command.parse cmd) state)
 

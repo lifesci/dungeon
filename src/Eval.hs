@@ -27,12 +27,20 @@ boolToInt x = if x then 1 else 0
 intToBool :: Int -> Bool
 intToBool x = x /= 0
 
-runCmd :: Maybe Command.Command -> DgState -> DgState
-runCmd Nothing s = s
-runCmd (Just cmd) s = case (Command.name cmd) of
-    "take" -> runTakeCmd s cmd
-    "open" -> runOpenCmd s cmd
-    _ -> runActionCmd s cmd
+runCmd :: String -> Maybe Command.Command -> DgState -> DgState
+rumCmd _ Nothing s = s
+runCmd src (Just cmd) s =
+    let
+        target = if (Command.target cmd) == "self" then src else (Command.target cmd)
+        newState = DgState.updateSourceAndTarget src target s
+    in
+        if src == "player" then
+            case (Command.name cmd) of
+                "take" -> runTakeCmd newState cmd
+                "open" -> runOpenCmd s cmd
+                _ -> runActionCmd s cmd
+        else
+            runActionCmd s cmd
 
 runOpenCmd :: DgState -> Command.Command -> DgState
 runOpenCmd s c =
@@ -67,17 +75,26 @@ runTakeCmd s cmd =
 runActionCmd :: DgState -> Command.Command -> DgState
 runActionCmd s c =
     let
-        target = if ((Command.target c) == "player") then (Just (DgState.player s)) else (Room.lookupEntity (Command.target c) (DgState.getCurrentRoom s))
+        source = if ((DgState.source s) == "player") then (Just (DgState.player s)) else (Room.lookupEntity (DgState.source s) (DgState.getCurrentRoom s))
+        target = if ((DgState.target s) == "player") then (Just (DgState.player s)) else (Room.lookupEntity (DgState.target s) (DgState.getCurrentRoom s))
         (action, args) = Entity.lookupAction (Command.name c) (Command.using c) (DgState.player s)
     in
         runTriggers (runAction s target action args) c target
+
+runAction :: DgState -> Maybe Entity.Entity -> Maybe Action.Action -> Map String Expr.Expr -> DgState
+runAction s Nothing _ _ = s
+runAction s _ Nothing _ = s
+runAction s (Just e) (Just a) args =
+    Eval.evalStmtBlock
+        (Action.stmts a)
+        (DgState.updateSTS "player" (Entity.name e) (Scope.fromArgs args) s)
 
 runTriggers :: DgState -> Command.Command -> Maybe Entity.Entity -> DgState
 runTriggers s _ Nothing = s
 runTriggers s c (Just e) =
     foldl
         (runTrigger (Command.name c))
-        (DgState.updateSourceAndTarget (Just (Command.target c)) (Just "player") s)
+        (DgState.swapSourceAndTarget s)
         (Entity.getTriggers e)
 
 runTrigger :: String -> DgState -> Trigger.Trigger -> DgState
@@ -105,14 +122,6 @@ runTrigger a s t =
                 newState
         else
             newState
-
-runAction :: DgState -> Maybe Entity.Entity -> Maybe Action.Action -> Map String Expr.Expr -> DgState
-runAction s Nothing _ _ = s
-runAction s _ Nothing _ = s
-runAction s (Just e) (Just a) args =
-    Eval.evalStmtBlock
-        (Action.stmts a)
-        (DgState.updateSTS (Just "player") (Just (Entity.name e)) (Scope.fromArgs args) s)
 
 evalStmtBlock :: [Stmt.Stmt] -> DgState -> DgState
 evalStmtBlock [] state = DgState.leaveScope state
