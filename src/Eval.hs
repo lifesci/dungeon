@@ -37,10 +37,10 @@ runCmd src (Just cmd) s =
         if src == "player" then
             case (Command.name cmd) of
                 "take" -> runTakeCmd newState cmd
-                "open" -> runOpenCmd s cmd
-                _ -> runActionCmd s cmd
+                "open" -> runOpenCmd newState cmd
+                _ -> runActionCmd newState cmd
         else
-            runActionCmd s cmd
+            runActionCmd newState cmd
 
 runOpenCmd :: DgState -> Command.Command -> DgState
 runOpenCmd s c =
@@ -75,9 +75,9 @@ runTakeCmd s cmd =
 runActionCmd :: DgState -> Command.Command -> DgState
 runActionCmd s c =
     let
-        source = if ((DgState.source s) == "player") then (Just (DgState.player s)) else (Room.lookupEntity (DgState.source s) (DgState.getCurrentRoom s))
-        target = if ((DgState.target s) == "player") then (Just (DgState.player s)) else (Room.lookupEntity (DgState.target s) (DgState.getCurrentRoom s))
-        (action, args) = Entity.lookupAction (Command.name c) (Command.using c) (DgState.player s)
+        source = DgState.lookupSource s
+        target = DgState.lookupTarget s
+        (action, args) = Entity.lookupAction (Command.name c) (Command.using c) (DgState.lookupSource s)
     in
         runTriggers (runAction s target action args) c target
 
@@ -87,7 +87,7 @@ runAction s _ Nothing _ = s
 runAction s (Just e) (Just a) args =
     Eval.evalStmtBlock
         (Action.stmts a)
-        (DgState.updateSTS "player" (Entity.name e) (Scope.fromArgs args) s)
+        (DgState.updateScope (Scope.fromArgs args) s)
 
 runTriggers :: DgState -> Command.Command -> Maybe Entity.Entity -> DgState
 runTriggers s _ Nothing = s

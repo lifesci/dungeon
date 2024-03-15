@@ -36,9 +36,10 @@ data Entity = Entity {
     behaviour :: [(Expr.Expr, Command.Command)]
 } deriving Show
 
-lookupAction :: String -> Maybe String -> Entity -> (Maybe Action.Action, Map String Expr.Expr)
-lookupAction actionName Nothing e = (Map.lookup actionName (actions e), Map.empty)
-lookupAction actionName (Just item) e =
+lookupAction :: String -> Maybe String -> Maybe Entity -> (Maybe Action.Action, Map String Expr.Expr)
+lookupAction _ _ Nothing = (Nothing, Map.empty)
+lookupAction actionName Nothing (Just e) = (Map.lookup actionName (actions e), Map.empty)
+lookupAction actionName (Just item) (Just e) =
     case
         Map.lookup item (items e)
     of

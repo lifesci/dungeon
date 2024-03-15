@@ -16,7 +16,9 @@ module DgState (
     updateSTS,
     swapSourceAndTarget,
     updateCurrentRoom,
-    getDoor
+    getDoor,
+    lookupSource,
+    lookupTarget
 ) where
 
 import Scope(Scope)
@@ -276,4 +278,10 @@ getDoor name s = Room.getDoor name (getCurrentRoom s)
 lookupEntity :: String -> DgState -> Maybe Entity.Entity
 lookupEntity "player" s = Just (player s)
 lookupEntity name s = Room.lookupEntity name (getCurrentRoom s)
+
+lookupSource :: DgState -> Maybe Entity.Entity
+lookupSource s = lookupEntity (source s) s
+
+lookupTarget :: DgState -> Maybe Entity.Entity
+lookupTarget s = lookupEntity (target s) s
 
