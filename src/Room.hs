@@ -78,12 +78,7 @@ fromTemplate etm itm sb rt = Room {
 }
 
 updateItems :: Map String Item.Item -> Room -> Room
-updateItems i r = Room {
-    name=(name r),
-    entities=(entities r),
-    items=i,
-    doors=(doors r)
-}
+updateItems i r = r { items=i }
 
 takeItem :: String -> Room -> (Maybe Item.Item, Room)
 takeItem s r =

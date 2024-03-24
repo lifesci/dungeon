@@ -46,7 +46,8 @@ data DgState = DgState {
     player :: Entity.Entity,
     rooms :: Map String Room.Room,
     running :: Bool,
-    rng :: StdGen
+    rng :: StdGen,
+    msg :: String
 } deriving Show
 
 toString :: DgState -> Int -> String
@@ -84,28 +85,10 @@ buildState gen dgn = DgState {
 }
 
 updateGen :: StdGen -> DgState -> DgState
-updateGen gen state = DgState {
-    currentRoom=(currentRoom state),
-    scope=(scope state),
-    source=(source state),
-    target=(target state),
-    player=(player state),
-    rooms=(rooms state),
-    running=(running state),
-    rng=gen
-}
+updateGen gen state = state { rng=gen }
 
 updateScopeAndGen :: Scope -> StdGen -> DgState -> DgState
-updateScopeAndGen scp gen state = DgState {
-    currentRoom=(currentRoom state),
-    scope=scp,
-    source=(source state),
-    target=(target state),
-    player=(player state),
-    rooms=(rooms state),
-    running=(running state),
-    rng=gen
-}
+updateScopeAndGen scp gen state = state { scope=scp, rng=gen }
 
 updateSTS :: String -> String -> Scope -> DgState -> DgState
 updateSTS src trgt scp state = state { source=src, target=trgt, scope=scp }
@@ -117,66 +100,24 @@ swapSourceAndTarget :: DgState -> DgState
 swapSourceAndTarget state = state { source=DgState.target state, target=DgState.source state }
 
 updateScope :: Scope -> DgState -> DgState
-updateScope scp state = DgState {
-    currentRoom=(currentRoom state),
-    scope=scp,
-    source=(source state),
-    target=(target state),
-    player=(player state),
-    rooms=(rooms state),
-    running=(running state),
-    rng=(rng state)
-}
+updateScope scp state = state { scope=scp }
 
 updateCurrentRoom :: String -> DgState -> DgState
 updateCurrentRoom room state = state { currentRoom=room }
 
 enterScope :: DgState -> DgState
-enterScope state = DgState {
-    currentRoom=(currentRoom state),
-    scope=(Scope.push (scope state)),
-    source=(source state),
-    target=(target state),
-    player=(player state),
-    rooms=(rooms state),
-    running=(running state),
-    rng=(rng state)
-}
+enterScope state = state { scope=(Scope.push (scope state)) }
 
 leaveScope :: DgState -> DgState
-leaveScope state = DgState {
-    currentRoom=(currentRoom state),
-    scope=(Scope.parent (scope state)),
-    source=(source state),
-    target=(target state),
-    player=(player state),
-    rooms=(rooms state),
-    running=(running state),
-    rng=(rng state)
-}
+leaveScope state = state { scope=(Scope.parent (scope state)) }
 
 setRunning :: Bool -> DgState -> DgState
-setRunning newRunning state = DgState {
-    currentRoom=(currentRoom state),
-    scope=(scope state),
-    source=(source state),
-    target=(target state),
-    player=(player state),
-    rooms=(rooms state),
-    running=newRunning,
-    rng=(rng state)
-}
+setRunning newRunning state = state { running=newRunning }
 
 takeItem :: Item.Item -> Room.Room -> DgState -> DgState
-takeItem i r state = DgState {
-    currentRoom=(currentRoom state),
-    scope=(scope state),
-    source=(source state),
-    target=(target state),
+takeItem i r state = state {
     player=(Entity.takeItem i (player state)),
-    rooms=(Map.insert (Room.name r) r (rooms state)),
-    running=(running state),
-    rng=(rng state)
+    rooms=(Map.insert (Room.name r) r (rooms state))
 }
 
 getCurrentRoom :: DgState -> Room.Room
@@ -210,62 +151,33 @@ getPropVal _ _ = error "Invalid property owner"
 updateEntityProp :: String -> String -> Int -> DgState -> DgState
 updateEntityProp "player" name val state =
     let p = (player state) in
-        DgState {
-            currentRoom=(currentRoom state),
-            scope=(scope state),
-            source=(source state),
-            target=(target state),
-            player=Entity.Entity {
-                Entity.eType=(Entity.eType p),
-                Entity.name=(Entity.name p),
-                Entity.args=(Entity.args p),
-                Entity.stats=(Map.insert name val (Entity.stats p)),
-                Entity.alive=(Entity.alive p),
-                Entity.actions=(Entity.actions p),
-                Entity.triggers=(Entity.triggers p),
-                Entity.items=(Entity.items p)
-            },
-            rooms=(rooms state),
-            running=(running state),
-            rng=(rng state)
+        state {
+            player=p {
+                Entity.stats=(Map.insert name val (Entity.stats p))
+            }
         }
 updateEntityProp enemy name val state =
     let
         entity = getCurrentRoomEntity enemy state
         curRoom = getCurrentRoom state
     in
-        DgState {
-            currentRoom=(currentRoom state),
-            scope=(scope state),
-            source=(source state),
-            target=(target state),
-            player=(player state),
+        state {
             rooms=(
                 Map.insert
                     (currentRoom state)
-                    Room.Room {
-                        Room.name=(Room.name curRoom),
+                    (curRoom {
                         Room.entities=(
                             Map.insert
                                 enemy
-                                Entity.Entity {
-                                    Entity.eType=(Entity.eType entity),
-                                    Entity.name=(Entity.name entity),
-                                    Entity.args=(Entity.args entity),
+                                entity {
                                     Entity.stats=(
                                         Map.insert
                                             name
                                             val
-                                            (Entity.stats entity)),
-                                    Entity.alive=(Entity.alive entity),
-                                    Entity.actions=(Entity.actions entity),
-                                    Entity.triggers=(Entity.triggers entity),
-                                    Entity.items=(Entity.items entity)
+                                            (Entity.stats entity))
                                 }
-                                (Room.entities curRoom)),
-                        Room.items=(Room.items curRoom),
-                        Room.doors=(Room.doors curRoom)
-                    }
+                                (Room.entities curRoom))
+                    })
                     (rooms state)),
             running=(running state),
             rng=(rng state)
