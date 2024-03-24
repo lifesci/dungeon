@@ -70,6 +70,13 @@ runNpcs s =
 runNpcAndCheckDeath :: DgState -> String -> DgState
 runNpcAndCheckDeath s name = checkDeath (runNpc (DgState.lookupEntity name s) s)
 
+getNpcBehaviour :: Entity.Entity -> DgState -> (Command.Command, DgState)
+getNpcBehaviour e s =
+    getCommand
+        (Entity.behaviour e)
+        (Entity.defaultBehaviour e)
+        (DgState.updateScope (Entity.statsToScope e) s)
+
 runNpc :: Maybe Entity.Entity -> DgState -> DgState
 runNpc Nothing s = DgState.updateMsg "NPC not found" s
 runNpc (Just e) s =
@@ -77,13 +84,6 @@ runNpc (Just e) s =
         (cmd, newState) = getNpcBehaviour e s
     in
         runCmd (Entity.name e) (Just cmd) newState
-
-getNpcBehaviour :: Entity.Entity -> DgState -> (Command.Command, DgState)
-getNpcBehaviour e s =
-    getCommand
-        (Entity.behaviour e)
-        (Entity.defaultBehaviour e)
-        (DgState.updateScope (Entity.statsToScope e) s)
 
 getCommand :: [(Expr.Expr, Command.Command)] -> Command.Command -> DgState -> (Command.Command, DgState)
 getCommand [] db s = (db, s)
@@ -102,7 +102,7 @@ runPlayer :: String -> Maybe Command.Command -> DgState -> DgState
 runPlayer src c s = checkDeath (runCmd src c s)
 
 runCmd :: String -> Maybe Command.Command -> DgState -> DgState
-rumCmd _ Nothing s = DgState.updateMsg "Invalid command" s
+runCmd _ Nothing s = DgState.updateMsg "Invalid command" s
 runCmd src (Just cmd) s =
     let
         target = if (Command.target cmd) == "self" then src else (Command.target cmd)
@@ -149,7 +149,6 @@ runTakeCmd s cmd =
 runActionCmd :: DgState -> Command.Command -> DgState
 runActionCmd s c =
     let
-        source = DgState.lookupSource s
         target = DgState.lookupTarget s
         (action, args) = Entity.lookupAction (Command.name c) (Command.using c) (DgState.lookupSource s)
     in
