@@ -2,7 +2,7 @@ module Main (main) where
 
 import Parser(parse)
 import Lexer(alexScanTokens)
-import DgState(DgState)
+import DgState(DgState, msg)
 import qualified DgState
 import qualified Command
 import qualified Eval
@@ -18,6 +18,7 @@ main = do
 
 run :: DgState -> IO ()
 run state = do
+    putStr ((msg state) ++ "\n")
     putStr (DgState.toString state 0)
     cmd <- getLine
     run (Eval.runPlayer "player" (Command.parse cmd) state)

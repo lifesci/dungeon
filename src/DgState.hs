@@ -2,6 +2,7 @@ module DgState (
     DgState(..),
     buildState,
     toString,
+    updateMsg,
     updateGen,
     updateScopeAndGen,
     updateScope,
@@ -57,7 +58,9 @@ toString state t =
             "\n"
             [
                 Entity.toString t (player state),
-                Room.toString t (getCurrentRoom state)
+                Room.toString t (getCurrentRoom state),
+                "Source: " ++ (source state),
+                "Target: " ++ (target state)
             ]
     )
     ++ "\n"
@@ -81,8 +84,12 @@ buildState gen dgn = DgState {
         Room.name
         id,
     running=True,
-    rng=gen
+    rng=gen,
+    msg=""
 }
+
+updateMsg :: String -> DgState -> DgState
+updateMsg m state = state { msg=m }
 
 updateGen :: StdGen -> DgState -> DgState
 updateGen gen state = state { rng=gen }

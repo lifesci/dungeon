@@ -71,7 +71,7 @@ runNpcAndCheckDeath :: DgState -> String -> DgState
 runNpcAndCheckDeath s name = checkDeath (runNpc (DgState.lookupEntity name s) s)
 
 runNpc :: Maybe Entity.Entity -> DgState -> DgState
-runNpc Nothing s = s
+runNpc Nothing s = DgState.updateMsg "NPC not found" s
 runNpc (Just e) s =
     let
         (cmd, newState) = getNpcBehaviour e s
@@ -102,7 +102,7 @@ runPlayer :: String -> Maybe Command.Command -> DgState -> DgState
 runPlayer src c s = checkDeath (runCmd src c s)
 
 runCmd :: String -> Maybe Command.Command -> DgState -> DgState
-rumCmd _ Nothing s = s
+rumCmd _ Nothing s = DgState.updateMsg "Invalid command" s
 runCmd src (Just cmd) s =
     let
         target = if (Command.target cmd) == "self" then src else (Command.target cmd)
@@ -121,7 +121,7 @@ runOpenCmd s c =
     case
         DgState.getDoor (Command.target c) s
     of
-        Nothing -> s
+        Nothing -> DgState.updateMsg "Door not found" s
         (Just d) -> tryOpenDoor d s
 
 tryOpenDoor :: Door.Door -> DgState -> DgState
@@ -143,7 +143,7 @@ runTakeCmd s cmd =
         (item, newRoom) = Room.takeItem (Command.target cmd) (DgState.getCurrentRoom s)
     in
         case item of
-            Nothing -> s
+            Nothing -> DgState.updateMsg "Item not found" s
             (Just i) -> DgState.takeItem i newRoom s
 
 runActionCmd :: DgState -> Command.Command -> DgState
@@ -156,15 +156,15 @@ runActionCmd s c =
         runTriggers (runAction s target action args) c target
 
 runAction :: DgState -> Maybe Entity.Entity -> Maybe Action.Action -> Map String Expr.Expr -> DgState
-runAction s Nothing _ _ = s
-runAction s _ Nothing _ = s
+runAction s Nothing _ _ = DgState.updateMsg "Target not found" s
+runAction s _ Nothing _ = DgState.updateMsg "Action not found" s
 runAction s (Just e) (Just a) args =
     Eval.evalStmtBlock
         (Action.stmts a)
         (DgState.updateScope (Scope.fromArgs args) s)
 
 runTriggers :: DgState -> Command.Command -> Maybe Entity.Entity -> DgState
-runTriggers s _ Nothing = s
+runTriggers s _ Nothing = DgState.updateMsg "Could not run triggers, target not found" s
 runTriggers s c (Just e) =
     foldl
         (runTrigger (Command.name c))
