@@ -1,4 +1,4 @@
-module Eval (runCmd) where
+module Eval (runPlayer) where
 
 import Data.Map(Map)
 import qualified Data.Map as Map
@@ -97,6 +97,9 @@ getCommand ((expr, cmd):xs) db s =
             (cmd, newState)
         else
             getCommand xs db newState
+
+runPlayer :: String -> Maybe Command.Command -> DgState -> DgState
+runPlayer src c s = checkDeath (runCmd src c s)
 
 runCmd :: String -> Maybe Command.Command -> DgState -> DgState
 rumCmd _ Nothing s = s
