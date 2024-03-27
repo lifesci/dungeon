@@ -185,9 +185,8 @@ updateEntityProp enemy name val state =
                                 }
                                 (Room.entities curRoom))
                     })
-                    (rooms state)),
-            running=(running state),
-            rng=(rng state)
+                    (rooms state)
+                )
         }
 
 updateProp :: Stat.Stat -> Int -> DgState -> DgState

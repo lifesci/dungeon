@@ -98,8 +98,8 @@ getCommand ((expr, cmd):xs) db s =
         else
             getCommand xs db newState
 
-runPlayer :: String -> Maybe Command.Command -> DgState -> DgState
-runPlayer src c s = checkDeath (runCmd src c s)
+runPlayer :: Maybe Command.Command -> DgState -> DgState
+runPlayer c s = checkDeath (runCmd "player" c s)
 
 runCmd :: String -> Maybe Command.Command -> DgState -> DgState
 runCmd _ Nothing s = DgState.updateMsg "Invalid command" s

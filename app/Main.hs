@@ -21,5 +21,5 @@ run state = do
     putStr ((msg state) ++ "\n")
     putStr (DgState.toString state 0)
     cmd <- getLine
-    run (Eval.runPlayer "player" (Command.parse cmd) state)
+    run (Eval.runPlayer (Command.parse cmd) state)
 
