@@ -60,7 +60,8 @@ toString state t =
                 Entity.toString t (player state),
                 Room.toString t (getCurrentRoom state),
                 "Source: " ++ (source state),
-                "Target: " ++ (target state)
+                "Target: " ++ (target state),
+                "Running: " ++ (show (running state))
             ]
     )
     ++ "\n"

@@ -27,16 +27,16 @@ boolToInt x = if x then 1 else 0
 intToBool :: Int -> Bool
 intToBool x = x /= 0
 
-isDead :: Entity.Entity -> DgState -> (Bool, DgState)
-isDead e s = evalBoolExpr (Entity.alive e) (DgState.updateScope (Entity.statsToScope e) s)
+isAlive :: Entity.Entity -> DgState -> (Bool, DgState)
+isAlive e s = evalBoolExpr (Entity.alive e) (DgState.updateScope (Entity.statsToScope e) s)
 
 checkPlayerDeath :: DgState -> DgState
 checkPlayerDeath s =
     let
-        (dead, newState) = isDead (DgState.player s) s
+        (alive, newState) = isAlive (DgState.player s) s
     in
         if
-            dead
+            not alive
         then
             DgState.setRunning False newState
         else
@@ -45,10 +45,10 @@ checkPlayerDeath s =
 checkEntityDeath :: DgState -> Entity.Entity -> DgState
 checkEntityDeath s e =
     let
-        (dead, newState) = isDead e s
+        (alive, newState) = isAlive e s
     in
         if
-            dead
+            not alive
         then
             DgState.removeEntity (Entity.name e) newState
         else
