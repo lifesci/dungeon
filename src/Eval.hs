@@ -1,4 +1,4 @@
-module Eval (runPlayer) where
+module Eval (runPlayer, runNpcs) where
 
 import Data.Map(Map)
 import qualified Data.Map as Map

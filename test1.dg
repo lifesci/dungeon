@@ -9,7 +9,7 @@ player me {
     stats {
         hp = 100;
     }
-    alive = 1;
+    alive = hp > 95;
     action test_action targets (a or b) {
         source.hp = source.hp - 1;
     }
