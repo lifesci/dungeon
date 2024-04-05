@@ -302,7 +302,8 @@ ElseIf
     : else if '(' Expr ')' '{' StmtList '}' { ($4, rev $7) }
 
 Else
-    : else '{' StmtList '}' { rev $3 }
+    : {- empty -} { [] }
+    | else '{' StmtList '}' { rev $3 }
 
 StmtList
     : {- empty -} { [] }

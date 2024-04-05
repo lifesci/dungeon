@@ -1,0 +1,59 @@
+game test;
+
+statblock {
+    hp = 10;
+    max_hp = 10;
+    str = 1;
+    def = 1;
+}
+
+player me {
+    stats {
+        hp = 100;
+        max_hp = 100;
+        str = 5;
+    }
+    alive = hp > 0;
+    action attack targets (a or b) {
+        let dmg = 1d6 + source.str;
+        target.hp = target.hp - dmg;
+    }
+    trigger defend on (attack) {
+        source.hp = source.hp + source.def;
+        if (source.hp > source.max_hp) {
+            source.hp = source.max_hp;
+        }
+    }
+}
+
+enemy goblin() {
+    stats {}
+    alive = hp > 0;
+    action attack targets (a or b) {
+        let dmg = 1d4 + source.str;
+        target.hp = target.hp - dmg;
+    }
+
+    action heal targets (a or b) {
+        source.hp = source.hp + 3;
+        if (source.hp > source.max_hp) {
+            source.hp = source.max_hp;
+        }
+    }
+
+    behaviour {
+        hp < 5 = heal self;
+        default = attack player;
+    }
+}
+
+room start {
+    enemies {
+        bob = goblin();
+        ted = goblin();
+        steve = goblin();
+    }
+    items {}
+    doors {}
+}
+
