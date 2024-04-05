@@ -34,59 +34,59 @@ import qualified Stat
 %error { parseError }
 
 %token
-    '+' { TAdd }
-    '-' { TSub }
-    '*' { TMul }
-    '/' { TDiv }
-    '%' { TMod }
+    '+' { TAdd _ }
+    '-' { TSub _ }
+    '*' { TMul _ }
+    '/' { TDiv _ }
+    '%' { TMod _ }
 
-    and { TAnd }
-    or { TOr }
-    not { TNot }
-    eq { TEq }
-    neq { TNeq }
-    '>' { TGt }
-    '<' { TLt }
-    gte { TGte }
-    lte { TLte }
-    '(' { TLParen }
-    ')' { TRParen }
-    '{' { TLBrace }
-    '}' { TRBrace }
+    and { TAnd _ }
+    or { TOr _ }
+    not { TNot _ }
+    eq { TEq _ }
+    neq { TNeq _ }
+    '>' { TGt _ }
+    '<' { TLt _ }
+    gte { TGte _ }
+    lte { TLte _ }
+    '(' { TLParen _ }
+    ')' { TRParen _ }
+    '{' { TLBrace _ }
+    '}' { TRBrace _ }
 
-    '=' { TAssign }
+    '=' { TAssign _ }
 
-    ';' { TSemicolon }
-    '.' { TDot }
-    ',' { TComma }
+    ';' { TSemicolon _ }
+    '.' { TDot _ }
+    ',' { TComma _ }
 
-    int { TInt $$ }
-    id { TId $$ }
-    dice { TRawDice $$ }
+    int { TInt _ $$ }
+    id { TId _ $$ }
+    dice { TRawDice _ $$ }
 
-    let { TLet }
-    if { TIf }
-    else { TElse }
-    while { TWhile }
-    player { TPlayer }
-    enemy { TEnemy }
-    enemies { TEnemies }
-    action { TAction }
-    targets { TTargets }
-    trigger { TTrigger }
-    on { TOn }
-    statblock { TStatblock }
-    stats { TStats }
-    item { TItem }
-    items { TItems }
-    doors { TDoors }
-    to { TTo }
-    requires { TRequires }
-    room { TRoom }
-    game { TGame }
-    alive { TAlive }
-    behaviour { TBehaviour }
-    default { TDefault }
+    let { TLet _ }
+    if { TIf _ }
+    else { TElse _ }
+    while { TWhile _ }
+    player { TPlayer _ }
+    enemy { TEnemy _ }
+    enemies { TEnemies _ }
+    action { TAction _ }
+    targets { TTargets _ }
+    trigger { TTrigger _ }
+    on { TOn _ }
+    statblock { TStatblock _ }
+    stats { TStats _ }
+    item { TItem _ }
+    items { TItems _ }
+    doors { TDoors _ }
+    to { TTo _ }
+    requires { TRequires _ }
+    room { TRoom _ }
+    game { TGame _ }
+    alive { TAlive _ }
+    behaviour { TBehaviour _ }
+    default { TDefault _ }
 -- Dungeon: GameName Statblock Player EnemyList ItemList RoomList {
 %%
 
@@ -349,6 +349,11 @@ PropLiteral : id '.' id { Stat.Stat { Stat.owner=$1, Stat.name=$3 } }
 
 {
 parseError :: [Token] -> a
-parseError _ = error "Parse error"
+parseError [] = error "Parse error at end of file"
+parseError (tk:tks) =
+    let
+        AlexPn _ line col = tok_pos tk
+    in
+        error ("Unexpected token at line " ++ (show line) ++ ", column " ++ (show col))
 }
 
