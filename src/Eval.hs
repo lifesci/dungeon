@@ -62,9 +62,10 @@ checkDeath s = checkAllEntityDeath (checkPlayerDeath s)
 runNpcs :: DgState -> DgState
 runNpcs s =
     let
-        nameList = DgState.getEntityNames s
+        newState = DgState.clearMsg s
+        nameList = DgState.getEntityNames newState
     in
-        foldl runNpcAndCheckDeath s nameList
+        foldl runNpcAndCheckDeath newState nameList
 
 runNpcAndCheckDeath :: DgState -> String -> DgState
 runNpcAndCheckDeath s name = checkDeath (runNpc (DgState.lookupEntity name s) s)
@@ -98,7 +99,7 @@ getCommand ((expr, cmd):xs) db s =
             getCommand xs db newState
 
 runPlayer :: Maybe Command.Command -> DgState -> DgState
-runPlayer c s = checkDeath (runCmd "player" c s)
+runPlayer c s = checkDeath (runCmd "player" c (DgState.clearMsg s))
 
 runCmd :: String -> Maybe Command.Command -> DgState -> DgState
 runCmd _ Nothing s = DgState.updateMsg "Invalid command" s

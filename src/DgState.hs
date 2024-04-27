@@ -23,7 +23,8 @@ module DgState (
     lookupTarget,
     getEntityNames,
     getEntities,
-    killEntity
+    killEntity,
+    clearMsg
 ) where
 
 import Scope(Scope)
@@ -91,6 +92,9 @@ buildState gen dgn = DgState {
 
 updateMsg :: String -> DgState -> DgState
 updateMsg m state = state { msg=m }
+
+clearMsg :: DgState -> DgState
+clearMsg state = updateMsg "" state
 
 updateGen :: StdGen -> DgState -> DgState
 updateGen gen state = state { rng=gen }
