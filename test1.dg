@@ -10,7 +10,7 @@ player me {
         hp = 100;
     }
     alive = hp > 95;
-    action test_action targets (a or b) {
+    action test_action {
         source.hp = source.hp - 1;
     }
     trigger test_trigger on (c or not d) {}
@@ -21,7 +21,7 @@ enemy test_enemy() {
         mp = 1;
     }
     alive = 1;
-    action test_action targets (a or b) {}
+    action test_action {}
     trigger test_trigger on (c or not d) {}
 
     behaviour {
@@ -31,7 +31,7 @@ enemy test_enemy() {
 }
 
 item test_item<weapon>(dmg) {
-    action attack targets (entity) {
+    action attack {
         target.hp = target.hp - dmg;
     }
 }

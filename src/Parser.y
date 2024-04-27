@@ -72,7 +72,6 @@ import qualified Stat
     enemy { TEnemy _ }
     enemies { TEnemies _ }
     action { TAction _ }
-    targets { TTargets _ }
     trigger { TTrigger _ }
     on { TOn _ }
     statblock { TStatblock _ }
@@ -239,11 +238,10 @@ TriggerList
     : {- empty -} { [] }
     | TriggerList Trigger { $2 : $1 }
 
-Action: action id targets '(' Expr ')' '{' StmtList '}' {
+Action: action id '{' StmtList '}' {
     Action.Action {
         Action.name=$2,
-        Action.targets=$5,
-        Action.stmts=(rev $8)
+        Action.stmts=(rev $4)
     }
 }
 

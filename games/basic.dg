@@ -14,7 +14,7 @@ player me {
         str = 5;
     }
     alive = hp > 0;
-    action attack targets (a or b) {
+    action attack {
         let dmg = 1d6 + source.str;
         target.hp = target.hp - dmg;
     }
@@ -29,12 +29,12 @@ player me {
 enemy goblin() {
     stats {}
     alive = hp > 0;
-    action attack targets (a or b) {
+    action attack {
         let dmg = 1d4 + source.str;
         target.hp = target.hp - dmg;
     }
 
-    action heal targets (a or b) {
+    action heal {
         source.hp = source.hp + 3;
         if (source.hp > source.max_hp) {
             source.hp = source.max_hp;

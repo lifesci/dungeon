@@ -49,7 +49,6 @@ tokens :-
     "enemy" { tok (\p _ -> TEnemy p) }
     "enemies" { tok (\p _ -> TEnemies p) }
     "action" { tok (\p _ -> TAction p) }
-    "targets" { tok (\p _ -> TTargets p) }
     "trigger" { tok (\p _ -> TTrigger p) }
     "on" { tok (\p _ -> TOn p) }
     "statblock" { tok (\p _ -> TStatblock p) }
@@ -113,7 +112,6 @@ data Token
     | TEnemy AlexPosn
     | TEnemies AlexPosn
     | TAction AlexPosn
-    | TTargets AlexPosn
     | TTrigger AlexPosn
     | TOn AlexPosn
     | TStatblock AlexPosn
@@ -172,7 +170,6 @@ tok_pos (TPlayer p) = p
 tok_pos (TEnemy p) = p
 tok_pos (TEnemies p) = p
 tok_pos (TAction p) = p
-tok_pos (TTargets p) = p
 tok_pos (TTrigger p) = p
 tok_pos (TOn p) = p
 tok_pos (TStatblock p) = p
