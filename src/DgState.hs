@@ -116,6 +116,11 @@ updateScope :: Scope -> DgState -> DgState
 updateScope scp state = state { scope=scp }
 
 updateCurrentRoom :: String -> DgState -> DgState
+updateCurrentRoom "end" state = state {
+    currentRoom="end",
+    running=False,
+    msg="You won!"
+}
 updateCurrentRoom room state = state { currentRoom=room }
 
 enterScope :: DgState -> DgState
