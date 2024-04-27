@@ -24,10 +24,7 @@ player me {
             source.hp = source.max_hp;
         }
     }
-    items {
-        key = key<>();
-        red = red<>();
-    }
+    items {}
 }
 
 enemy goblin() {
