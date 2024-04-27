@@ -23,7 +23,7 @@ module DgState (
     lookupTarget,
     getEntityNames,
     getEntities,
-    removeEntity
+    killEntity
 ) where
 
 import Scope(Scope)
@@ -224,6 +224,6 @@ getEntityNames s = Room.getEntityNames (getCurrentRoom s)
 getEntities :: DgState -> [Entity.Entity]
 getEntities s = Room.getEntities (getCurrentRoom s)
 
-removeEntity :: String -> DgState -> DgState
-removeEntity name s = s { rooms=Map.insert (currentRoom s) (Room.removeEntity name (getCurrentRoom s)) (rooms s) }
+killEntity :: String -> DgState -> DgState
+killEntity name s = s { rooms=Map.insert (currentRoom s) (Room.killEntity name (getCurrentRoom s)) (rooms s) }
 

@@ -50,7 +50,7 @@ checkEntityDeath s e =
         if
             not alive
         then
-            DgState.removeEntity (Entity.name e) newState
+            DgState.killEntity (Entity.name e) newState
         else
             newState
 

@@ -7,7 +7,7 @@ module Room(
     getDoor,
     getEntityNames,
     getEntities,
-    removeEntity
+    killEntity
 ) where
 
 import qualified Entity
@@ -86,6 +86,15 @@ getEntityNames r = map (\(x, _) -> x) (Map.toList (entities r))
 getEntities :: Room -> [Entity.Entity]
 getEntities r = map (\(_, y) -> y) (Map.toList (entities r))
 
-removeEntity :: String -> Room -> Room
-removeEntity name r = r { entities=Map.delete name (entities r) }
+killEntity :: String -> Room -> Room
+killEntity name r =
+    let
+        entity = Map.lookup name (entities r)
+    in
+        case entity of
+            Nothing -> r
+            (Just e) -> r {
+                entities=Map.delete name (entities r),
+                items=Map.union (Entity.items e) (items r)
+            }
 

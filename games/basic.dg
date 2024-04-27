@@ -14,8 +14,8 @@ player me {
         str = 5;
     }
     alive = hp > 0;
-    action attack {
-        let dmg = 1d6 + source.str;
+    action unarmed_attack {
+        let dmg = 1d4 + source.str;
         target.hp = target.hp - dmg;
     }
     trigger defend on (attack) {
@@ -23,6 +23,10 @@ player me {
         if (source.hp > source.max_hp) {
             source.hp = source.max_hp;
         }
+    }
+    items {
+        key = key<>();
+        red = red<>();
     }
 }
 
@@ -45,16 +49,29 @@ enemy goblin() {
         hp < 5 = heal self;
         default = attack player;
     }
+
+    items {}
 }
 
-item key<key> {}
+item key<key>() {}
+item red<red>() {}
 
 room start {
     enemies {
-        bob = goblin();
-        ted = goblin();
-        steve = goblin();
+        bob = goblin() with items {
+            red_key = key<red_key>();
+        };
+        ted = goblin() with items {};
+        steve = goblin() with items {};
     }
+    items {}
+    doors {
+        exit to end requires (key and red);
+    }
+}
+
+room end {
+    enemies {}
     items {}
     doors {}
 }
