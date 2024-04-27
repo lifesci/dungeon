@@ -23,7 +23,7 @@ roll gen d
     | (size d) <= 0 = (0, gen)
     | otherwise = roll' (count d) (size d) gen 0
     where
-        roll' 0 s rng acc = (acc, rng)
+        roll' 0 _ rng acc = (acc, rng)
         roll' c s rng acc =
             let (val, newRng) = randomR (1, s) rng in
                 roll' (c - 1) s newRng (acc + val)

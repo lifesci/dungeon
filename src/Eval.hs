@@ -1,7 +1,6 @@
 module Eval (runPlayer, runNpcs) where
 
 import Data.Map(Map)
-import qualified Data.Map as Map
 import qualified Scope as Scope
 import DgState(DgState)
 import qualified DgState
@@ -157,7 +156,7 @@ runActionCmd s c =
 runAction :: DgState -> Maybe Entity.Entity -> Maybe Action.Action -> Map String Expr.Expr -> DgState
 runAction s Nothing _ _ = DgState.updateMsg "Target not found" s
 runAction s _ Nothing _ = DgState.updateMsg "Action not found" s
-runAction s (Just e) (Just a) args =
+runAction s (Just _) (Just a) args =
     Eval.evalStmtBlock
         (Action.stmts a)
         (DgState.updateScope (Scope.fromArgs args) s)

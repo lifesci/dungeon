@@ -30,12 +30,6 @@ emptyWithDefault d = Scope (Cactus Map.empty Nothing) (Just d)
 emptyWithFalseDefault :: Scope
 emptyWithFalseDefault = emptyWithDefault (Expr.IntExpr 0)
 
-emptyWithTrueDefault :: Expr.Expr -> Scope
-emptyWithTrueDefault d = emptyWithDefault (Expr.IntExpr 1)
-
-singleton :: String -> Expr.Expr -> Scope
-singleton var val = Scope (Cactus (Map.singleton var val) Nothing) Nothing
-
 singletonWithDefault :: String -> Expr.Expr -> Expr.Expr -> Scope
 singletonWithDefault var val d = Scope (Cactus (Map.singleton var val) Nothing) (Just d)
 

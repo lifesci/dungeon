@@ -92,11 +92,6 @@ buildState gen dgn = DgState {
 updateMsg :: String -> DgState -> DgState
 updateMsg m state = state { msg=m }
 
-appendMsg :: String -> DgState -> DgState
-appendMsg s state = case length s of
-    0 -> updateMsg s state
-    _ -> updateMsg ((msg state) ++ "\n" ++ s) state
-
 updateGen :: StdGen -> DgState -> DgState
 updateGen gen state = state { rng=gen }
 

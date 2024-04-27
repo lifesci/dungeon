@@ -16,7 +16,6 @@ import qualified EntityTemplate
 import qualified ItemTemplate
 import qualified RoomTemplate
 import qualified RoomTemplateEntity
-import qualified RoomTemplateItem
 import Door(Door)
 import qualified Door
 import Lib(listToMap, join, applyTabs, popMap)
@@ -31,7 +30,7 @@ data Room = Room {
 } deriving Show
 
 lookupEntity :: String -> Room -> Maybe Entity.Entity
-lookupEntity name r = Map.lookup name (entities r)
+lookupEntity entityName r = Map.lookup entityName (entities r)
 
 toString :: Int -> Room -> String
 toString t r = join
@@ -78,7 +77,7 @@ takeItem s r =
         (item, updateItems rest r)
 
 getDoor :: String -> Room -> Maybe Door
-getDoor name room = Map.lookup name (doors room)
+getDoor doorName room = Map.lookup doorName (doors room)
 
 getEntityNames :: Room -> [String]
 getEntityNames r = map (\(x, _) -> x) (Map.toList (entities r))
@@ -87,14 +86,14 @@ getEntities :: Room -> [Entity.Entity]
 getEntities r = map (\(_, y) -> y) (Map.toList (entities r))
 
 killEntity :: String -> Room -> Room
-killEntity name r =
+killEntity entityName r =
     let
-        entity = Map.lookup name (entities r)
+        entity = Map.lookup entityName (entities r)
     in
         case entity of
             Nothing -> r
             (Just e) -> r {
-                entities=Map.delete name (entities r),
+                entities=Map.delete entityName (entities r),
                 items=Map.union (Entity.items e) (items r)
             }
 

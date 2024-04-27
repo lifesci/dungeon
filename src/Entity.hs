@@ -12,19 +12,17 @@ module Entity (
 
 import qualified EntityTemplate
 import qualified RoomTemplateEntity
-import qualified RoomTemplateItem
 import qualified ItemTemplate
 import qualified Expr
 import qualified Action
 import qualified Trigger
 import qualified Item
 import qualified Command
-import Lib(join, applyTabs, listToMap)
+import Lib(join, applyTabs)
 import Scope(Scope)
 import qualified Scope as Scope
 import Data.Map(Map)
 import qualified Data.Map as Map
-import Data.Set(Set)
 import qualified Data.Set as Set
 
 data Entity = Entity {
