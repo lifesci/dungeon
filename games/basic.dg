@@ -47,6 +47,8 @@ enemy goblin() {
     }
 }
 
+item key<key> {}
+
 room start {
     enemies {
         bob = goblin();

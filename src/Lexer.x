@@ -55,6 +55,7 @@ tokens :-
     "stats" { tok (\p _ -> TStats p) }
     "item" { tok (\p _ -> TItem p) }
     "items" { tok (\p _ -> TItems p) }
+    "with" { tok (\p _ -> TWith p) }
     "doors" { tok (\p _ -> TDoors p) }
     "to" { tok (\p _ -> TTo p) }
     "requires" { tok (\p _ -> TRequires p) }
@@ -118,6 +119,7 @@ data Token
     | TStats AlexPosn
     | TItem AlexPosn
     | TItems AlexPosn
+    | TWith AlexPosn
     | TDoors AlexPosn
     | TTo AlexPosn
     | TRequires AlexPosn
@@ -176,6 +178,7 @@ tok_pos (TStatblock p) = p
 tok_pos (TStats p) = p
 tok_pos (TItem p) = p
 tok_pos (TItems p) = p
+tok_pos (TWith p) = p
 tok_pos (TDoors p) = p
 tok_pos (TTo p) = p
 tok_pos (TRequires p) = p

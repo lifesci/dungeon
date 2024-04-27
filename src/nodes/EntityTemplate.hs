@@ -4,6 +4,7 @@ import Data.Map(Map)
 import Expr(Expr)
 import Action(Action)
 import Trigger(Trigger)
+import RoomTemplateItem(RoomTemplateItem)
 import Command(Command)
 
 data EntityType = Player | Enemy deriving Show
@@ -17,5 +18,6 @@ data EntityTemplate = EntityTemplate {
     actions :: Map String Action,
     triggers :: Map String Trigger,
     behaviour :: [(Expr, Command)],
-    defaultBehaviour :: Command
+    defaultBehaviour :: Command,
+    items :: [RoomTemplateItem]
 } deriving Show

@@ -14,6 +14,9 @@ player me {
         source.hp = source.hp - 1;
     }
     trigger test_trigger on (c or not d) {}
+    items {
+        starting_item = test_item<default_item_attrib>(5);
+    }
 }
 
 enemy test_enemy() {
@@ -28,6 +31,9 @@ enemy test_enemy() {
         hp < 5 = heal self;
         default = test_action player;
     }
+    items {
+        red_key = key<red_key>();
+    }
 }
 
 item test_item<weapon>(dmg) {
@@ -36,10 +42,16 @@ item test_item<weapon>(dmg) {
     }
 }
 
+item key<> () {}
+
 room start {
-    enemies {}
+    enemies {
+        first_enemy = test_enemy() with items {
+            blue_key = key<blue_key>();
+        };
+    }
     items {
-        t1 = test_item(1d6);
+        t1 = test_item<>(1d6);
     }
     doors {
         door1 to test_room2;
@@ -48,11 +60,11 @@ room start {
 
 room test_room2 {
     enemies {
-        e1 = test_enemy();
+        e1 = test_enemy() with items {};
     }
     items {
-        test1 = test_item();
-        test2 = test_item();
+        test1 = test_item<test_attrib>();
+        test2 = test_item<>();
     }
     doors {
         door2 to test_room1 requires(key);

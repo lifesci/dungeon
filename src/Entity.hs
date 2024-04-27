@@ -12,12 +12,14 @@ module Entity (
 
 import qualified EntityTemplate
 import qualified RoomTemplateEntity
+import qualified RoomTemplateItem
+import qualified ItemTemplate
 import qualified Expr
 import qualified Action
 import qualified Trigger
 import qualified Item
 import qualified Command
-import Lib(join, applyTabs)
+import Lib(join, applyTabs, listToMap)
 import Scope(Scope)
 import qualified Scope as Scope
 import Data.Map(Map)
@@ -76,9 +78,9 @@ toString t e = join
 takeItem :: Item.Item -> Entity -> Entity
 takeItem i e = e { items=(Map.insert (Item.name i) i (items e)) }
 
-fromTemplate :: Maybe EntityTemplate.EntityTemplate -> Map String Int -> RoomTemplateEntity.RoomTemplateEntity -> Entity.Entity
-fromTemplate Nothing _ _ = error "Entity template not found"
-fromTemplate (Just t) statblock rte = Entity {
+fromTemplate :: Maybe EntityTemplate.EntityTemplate -> Map String Int -> Map String ItemTemplate.ItemTemplate -> RoomTemplateEntity.RoomTemplateEntity -> Entity.Entity
+fromTemplate Nothing _ _ _ = error "Entity template not found"
+fromTemplate (Just t) statblock itm rte = Entity {
     eType=(EntityTemplate.eType t),
     name=(RoomTemplateEntity.name rte),
     args=(
@@ -92,13 +94,17 @@ fromTemplate (Just t) statblock rte = Entity {
     alive=(EntityTemplate.alive t),
     actions=(EntityTemplate.actions t),
     triggers=(EntityTemplate.triggers t),
-    items=Map.empty,
     behaviour=(EntityTemplate.behaviour t),
-    defaultBehaviour=(EntityTemplate.defaultBehaviour t)
+    defaultBehaviour=(EntityTemplate.defaultBehaviour t),
+    items=(
+        Map.union
+            (Item.templateListToInventory (RoomTemplateEntity.items rte) itm)
+            (Item.templateListToInventory (EntityTemplate.items t) itm)
+    )
 }
 
-playerFromTemplate :: EntityTemplate.EntityTemplate -> Map String Int -> Entity.Entity
-playerFromTemplate t statblock = Entity {
+playerFromTemplate :: EntityTemplate.EntityTemplate -> Map String Int -> Map String ItemTemplate.ItemTemplate -> Entity.Entity
+playerFromTemplate t statblock itm = Entity {
     eType=(EntityTemplate.eType t),
     name="player",
     args=Map.empty,
@@ -106,9 +112,9 @@ playerFromTemplate t statblock = Entity {
     alive=(EntityTemplate.alive t),
     actions=(EntityTemplate.actions t),
     triggers=(EntityTemplate.triggers t),
-    items=Map.empty,
     behaviour=[],
-    defaultBehaviour=Command.empty
+    defaultBehaviour=Command.empty,
+    items=Item.templateListToInventory (EntityTemplate.items t) itm
 }
 
 statsFromTemplate :: EntityTemplate.EntityTemplate -> Map String Int -> Map String Int

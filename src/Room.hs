@@ -56,24 +56,14 @@ fromTemplate etm itm sb rt = Room {
                     \rte -> Entity.fromTemplate
                         (Map.lookup (RoomTemplateEntity.template rte) etm)
                         sb
+                        itm
                         rte
                 )
                 (RoomTemplate.entities rt)
         )
         Entity.name
         id,
-    items=listToMap
-        (
-            map
-                (
-                    \rti -> Item.fromTemplate
-                        (Map.lookup (RoomTemplateItem.template rti) itm)
-                        rti
-                )
-                (RoomTemplate.items rt)
-        )
-        Item.name
-        id,
+    items=Item.templateListToInventory (RoomTemplate.items rt) itm,
     doors=(listToMap (RoomTemplate.doors rt) Door.name id)
 }
 

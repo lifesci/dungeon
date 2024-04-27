@@ -1,7 +1,8 @@
 module Item (
     Item(..),
     fromTemplate,
-    toString
+    toString,
+    templateListToInventory
 ) where
 
 import qualified Expr
@@ -13,7 +14,7 @@ import Data.Set(Set)
 import qualified Data.Set as Set
 import Data.Map(Map)
 import qualified Data.Map as Map
-import Lib(join, applyTabs)
+import Lib(join, applyTabs, listToMap)
 
 data Item = Item {
     name :: String,
@@ -40,9 +41,27 @@ fromTemplate :: Maybe ItemTemplate.ItemTemplate -> RoomTemplateItem.RoomTemplate
 fromTemplate Nothing _ = error "Item template not found"
 fromTemplate (Just t) rti = Item {
     name=RoomTemplateItem.name rti,
-    attribs=Set.fromList (ItemTemplate.attribs t),
+    attribs=(
+        Set.union
+            (Set.fromList (ItemTemplate.attribs t))
+            (Set.fromList (RoomTemplateItem.attribs rti))
+    ),
     args=Map.fromList (zip (ItemTemplate.args t) (RoomTemplateItem.args rti)),
     actions=ItemTemplate.actions t,
     triggers=ItemTemplate.triggers t
 }
+
+templateListToInventory :: [RoomTemplateItem.RoomTemplateItem] -> Map String ItemTemplate.ItemTemplate -> Map String Item
+templateListToInventory rtis itm = listToMap
+    (
+        map
+            (
+                \rti -> fromTemplate
+                    (Map.lookup (RoomTemplateItem.template rti) itm)
+                    rti
+            )
+            rtis
+    )
+    name
+    id
 

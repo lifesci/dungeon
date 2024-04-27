@@ -78,6 +78,7 @@ import qualified Stat
     stats { TStats _ }
     item { TItem _ }
     items { TItems _ }
+    with { TWith _ }
     doors { TDoors _ }
     to { TTo _ }
     requires { TRequires _ }
@@ -113,7 +114,7 @@ Stat: id '=' int ';' { ($1, $3) }
 Alive: alive '=' Expr ';' { $3 }
 
 Player
-    : player id '{' stats '{' StatList '}' Alive ActionList TriggerList '}' {
+    : player id '{' stats '{' StatList '}' Alive ActionList TriggerList items '{' RoomItemList '}' '}' {
         EntityTemplate.EntityTemplate {
             EntityTemplate.eType = EntityTemplate.Player,
             EntityTemplate.name=$2,
@@ -122,7 +123,13 @@ Player
             EntityTemplate.alive=$8,
             EntityTemplate.actions=(listToMap (rev $9) Action.name id),
             EntityTemplate.triggers=(listToMap (rev $10) Trigger.name id),
-            EntityTemplate.behaviour=[]
+            EntityTemplate.behaviour=[],
+            EntityTemplate.defaultBehaviour=Command.Command {
+                Command.name="",
+                Command.target="",
+                Command.using=Nothing
+            },
+            EntityTemplate.items=(rev $13)
         }
     }
 
@@ -131,7 +138,7 @@ EnemyList
     | EnemyList Enemy { $2 : $1 }
 
 Enemy
-    : enemy id '(' IdList ')' '{' stats '{' StatList '}' Alive ActionList TriggerList Behaviour '}' {
+    : enemy id '(' IdList ')' '{' stats '{' StatList '}' Alive ActionList TriggerList Behaviour items '{' RoomItemList '}' '}' {
         let
             (behaviour, defaultBehaviour) = $14
         in
@@ -144,7 +151,8 @@ Enemy
                 EntityTemplate.actions=(listToMap (rev $12) Action.name id),
                 EntityTemplate.triggers=(listToMap (rev $13) Trigger.name id),
                 EntityTemplate.behaviour=behaviour,
-                EntityTemplate.defaultBehaviour=defaultBehaviour
+                EntityTemplate.defaultBehaviour=defaultBehaviour,
+                EntityTemplate.items=(rev $17)
             }
     }
 
@@ -182,11 +190,12 @@ RoomEnemyList
     : {- empty -} { [] }
     | RoomEnemyList RoomEnemy { $2 : $1 }
 
-RoomEnemy: id '=' id '(' ExprList ')' ';' {
+RoomEnemy: id '=' id '(' ExprList ')' with items '{' RoomItemList '}' ';' {
     RoomTemplateEntity.RoomTemplateEntity {
         RoomTemplateEntity.name=$1,
         RoomTemplateEntity.template=$3,
-        RoomTemplateEntity.args=(rev $5)
+        RoomTemplateEntity.args=(rev $5),
+        RoomTemplateEntity.items=(rev $10)
     }
 }
 
@@ -196,11 +205,12 @@ RoomItemList
     : {- empty -} { [] }
     | RoomItemList RoomItem { $2 : $1 }
 
-RoomItem: id '=' id '(' ExprList ')' ';' {
+RoomItem: id '=' id '<' IdList '>' '(' ExprList ')' ';' {
     RoomTemplateItem.RoomTemplateItem {
         RoomTemplateItem.name=$1,
         RoomTemplateItem.template=$3,
-        RoomTemplateItem.args=(rev $5)
+        RoomTemplateItem.attribs=(rev $5),
+        RoomTemplateItem.args=(rev $8)
     }
 }
 

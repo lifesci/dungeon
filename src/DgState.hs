@@ -72,7 +72,7 @@ buildState gen dgn = DgState {
     scope=Scope.empty,
     source="",
     target="",
-    player=Entity.playerFromTemplate (Dungeon.playerTemplate dgn) (Dungeon.statblock dgn),
+    player=Entity.playerFromTemplate (Dungeon.playerTemplate dgn) (Dungeon.statblock dgn) (Dungeon.itemTemplates dgn),
     rooms=listToMap
         (
             map
