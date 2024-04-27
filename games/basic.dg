@@ -51,7 +51,6 @@ enemy goblin() {
 }
 
 item key<key>() {}
-item red<red>() {}
 
 room start {
     enemies {
@@ -63,7 +62,7 @@ room start {
     }
     items {}
     doors {
-        exit to end requires (key and red);
+        exit to end requires (red_key);
     }
 }
 
