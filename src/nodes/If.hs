@@ -1,4 +1,3 @@
-module If(If(..)) where
+module If (If (..)) where
 
 import InternalStmt
-

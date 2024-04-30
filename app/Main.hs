@@ -1,12 +1,12 @@
 module Main (main) where
 
-import Parser(parse)
-import Lexer(alexScanTokens)
-import DgState(DgState, msg, running)
-import qualified DgState
 import qualified Command
+import DgState (DgState, msg, running)
+import qualified DgState
 import qualified Eval
-import System.Random(newStdGen)
+import Lexer (alexScanTokens)
+import Parser (parse)
+import System.Random (newStdGen)
 
 main :: IO ()
 main = do
@@ -25,4 +25,3 @@ run state = do
     let npcResult = Eval.runNpcs playerResult
     putStr ((msg npcResult) ++ "\n")
     if running npcResult then run npcResult else putStr "Game Over\n"
-

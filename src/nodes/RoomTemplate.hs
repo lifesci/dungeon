@@ -1,13 +1,13 @@
-module RoomTemplate(RoomTemplate(..)) where
+module RoomTemplate (RoomTemplate (..)) where
 
-import RoomTemplateEntity(RoomTemplateEntity)
-import RoomTemplateItem(RoomTemplateItem)
-import Door(Door)
+import Door (Door)
+import RoomTemplateEntity (RoomTemplateEntity)
+import RoomTemplateItem (RoomTemplateItem)
 
-data RoomTemplate = RoomTemplate {
-    name :: String,
-    entities :: [RoomTemplateEntity],
-    items :: [RoomTemplateItem],
-    doors :: [Door]
-} deriving Show
-
+data RoomTemplate = RoomTemplate
+    { name :: String
+    , entities :: [RoomTemplateEntity]
+    , items :: [RoomTemplateItem]
+    , doors :: [Door]
+    }
+    deriving (Show)

@@ -1,10 +1,10 @@
-module AssignStat(AssignStat(..)) where
+module AssignStat (AssignStat (..)) where
 
-import Stat(Stat)
-import Expr(Expr)
+import Expr (Expr)
+import Stat (Stat)
 
-data AssignStat = AssignStat {
-    stat :: Stat,
-    val :: Expr
-} deriving Show
-
+data AssignStat = AssignStat
+    { stat :: Stat
+    , val :: Expr
+    }
+    deriving (Show)

@@ -1,11 +1,11 @@
-module Trigger(Trigger(..)) where
+module Trigger (Trigger (..)) where
 
-import Expr(Expr)
-import Stmt(Stmt)
+import Expr (Expr)
+import Stmt (Stmt)
 
-data Trigger = Trigger {
-    name :: String,
-    on :: Expr,
-    stmts :: [Stmt]
-} deriving Show
-
+data Trigger = Trigger
+    { name :: String
+    , on :: Expr
+    , stmts :: [Stmt]
+    }
+    deriving (Show)

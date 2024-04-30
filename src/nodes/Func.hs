@@ -1,9 +1,9 @@
-module Func(Func(..)) where
+module Func (Func (..)) where
 
-import Expr(Expr)
+import Expr (Expr)
 
-data Func = Func {
-    name :: String,
-    args :: [Expr]
-} deriving Show
-
+data Func = Func
+    { name :: String
+    , args :: [Expr]
+    }
+    deriving (Show)

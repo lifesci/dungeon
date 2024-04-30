@@ -10,16 +10,16 @@ module Scope (
     singletonWithDefault,
     fromArgs,
     fromIntArgs,
-    emptyWithFalseDefault
+    emptyWithFalseDefault,
 ) where
 
-import Prelude hiding (lookup)
-import Data.Map(Map)
+import Data.Map (Map)
 import qualified Data.Map as Map
 import qualified Expr
+import Prelude hiding (lookup)
 
-data Cactus = Cactus (Map String Expr.Expr) (Maybe Cactus) deriving Show
-data Scope = Scope Cactus (Maybe Expr.Expr) deriving Show
+data Cactus = Cactus (Map String Expr.Expr) (Maybe Cactus) deriving (Show)
+data Scope = Scope Cactus (Maybe Expr.Expr) deriving (Show)
 
 empty :: Scope
 empty = Scope (Cactus Map.empty Nothing) Nothing
@@ -82,4 +82,3 @@ lookup (Scope c Nothing) var = case (lookup' c var) of
 lookup (Scope c (Just d)) var = case (lookup' c var) of
     Nothing -> d
     (Just x) -> x
-
