@@ -1,23 +1,24 @@
-module EntityTemplate(EntityTemplate(..), EntityType(..)) where
+module EntityTemplate (EntityTemplate (..), EntityType (..)) where
 
-import Data.Map(Map)
-import Expr(Expr)
-import Action(Action)
-import Trigger(Trigger)
-import RoomTemplateItem(RoomTemplateItem)
-import Command(Command)
+import Action (Action)
+import Command (Command)
+import Data.Map (Map)
+import Expr (Expr)
+import RoomTemplateItem (RoomTemplateItem)
+import Trigger (Trigger)
 
-data EntityType = Player | Enemy deriving Show
+data EntityType = Player | Enemy deriving (Show)
 
-data EntityTemplate = EntityTemplate {
-    eType :: EntityType,
-    name :: String,
-    args :: [String],
-    stats :: Map String Int,
-    alive :: Expr,
-    actions :: Map String Action,
-    triggers :: Map String Trigger,
-    behaviour :: [(Expr, Command)],
-    defaultBehaviour :: Command,
-    items :: [RoomTemplateItem]
-} deriving Show
+data EntityTemplate = EntityTemplate
+    { eType :: EntityType
+    , name :: String
+    , args :: [String]
+    , stats :: Map String Int
+    , alive :: Expr
+    , actions :: Map String Action
+    , triggers :: Map String Trigger
+    , behaviour :: [(Expr, Command)]
+    , defaultBehaviour :: Command
+    , items :: [RoomTemplateItem]
+    }
+    deriving (Show)

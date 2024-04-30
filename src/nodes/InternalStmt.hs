@@ -1,19 +1,21 @@
-module InternalStmt(Stmt(..), If(..), While(..)) where
+module InternalStmt (Stmt (..), If (..), While (..)) where
 
-import Declare(Declare)
-import Assign(Assign)
-import AssignStat(AssignStat)
-import Func(Func)
-import Expr(Expr)
+import Assign (Assign)
+import AssignStat (AssignStat)
+import Declare (Declare)
+import Expr (Expr)
+import Func (Func)
 
-data If = If {
-    conds :: [(Expr, [Stmt])]
-} deriving Show
+data If = If
+    { conds :: [(Expr, [Stmt])]
+    }
+    deriving (Show)
 
-data While = While {
-    cond :: Expr,
-    stmts :: [Stmt]
-} deriving Show
+data While = While
+    { cond :: Expr
+    , stmts :: [Stmt]
+    }
+    deriving (Show)
 
 data Stmt
     = DeclareStmt Declare
@@ -21,5 +23,5 @@ data Stmt
     | AssignStatStmt AssignStat
     | FuncStmt Func
     | WhileStmt While
-    | IfStmt If deriving Show
-
+    | IfStmt If
+    deriving (Show)

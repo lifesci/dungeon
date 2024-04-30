@@ -1,4 +1,3 @@
-module Stmt(Stmt(..)) where
+module Stmt (Stmt (..)) where
 
 import InternalStmt
-

@@ -1,9 +1,9 @@
-module Assign(Assign(..)) where
+module Assign (Assign (..)) where
 
-import Expr(Expr)
+import Expr (Expr)
 
-data Assign = Assign {
-    var :: String,
-    val :: Expr
-} deriving Show
-
+data Assign = Assign
+    { var :: String
+    , val :: Expr
+    }
+    deriving (Show)

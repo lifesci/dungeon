@@ -1,7 +1,7 @@
-module Stat(Stat(..)) where 
+module Stat (Stat (..)) where
 
-data Stat = Stat {
-    owner :: String,
-    name :: String
-} deriving Show
-
+data Stat = Stat
+    { owner :: String
+    , name :: String
+    }
+    deriving (Show)

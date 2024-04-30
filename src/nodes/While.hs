@@ -1,4 +1,3 @@
-module While(While(..)) where
+module While (While (..)) where
 
 import InternalStmt
-

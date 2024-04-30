@@ -1,9 +1,9 @@
-module Declare(Declare(..)) where
+module Declare (Declare (..)) where
 
-import Expr(Expr)
+import Expr (Expr)
 
-data Declare = Declare {
-    var :: String,
-    val :: Expr
-} deriving Show
-
+data Declare = Declare
+    { var :: String
+    , val :: Expr
+    }
+    deriving (Show)

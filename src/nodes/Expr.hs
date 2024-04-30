@@ -1,7 +1,7 @@
-module Expr(Expr(..), BinOp(..), UnOp(..)) where
+module Expr (Expr (..), BinOp (..), UnOp (..)) where
 
-import Dice(Dice)
-import Stat(Stat)
+import Dice (Dice)
+import Stat (Stat)
 
 data BinOp
     = Add
@@ -14,11 +14,13 @@ data BinOp
     | Mul
     | Div
     | Mod
-    | And deriving Show
+    | And
+    deriving (Show)
 
 data UnOp
     = Neg
-    | Not deriving Show
+    | Not
+    deriving (Show)
 
 data Expr
     = BinOpExpr BinOp Expr Expr
@@ -26,5 +28,5 @@ data Expr
     | IntExpr Int
     | DiceExpr Dice
     | VarExpr String
-    | StatExpr Stat deriving Show
-
+    | StatExpr Stat
+    deriving (Show)
